@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Generator</title>
+</head>
+<body>
+
+<h2>Password Generator</h2>
+
+<input type="text" id="name" placeholder="Enter Name"><br><br>
+<input type="text" id="number" placeholder="Enter Mobile Number (optional)"><br><br>
+
+<button onclick="generate()">Generate</button>
+
+<pre id="output"></pre>
+
+<script>
+function generate() {
+    let name = document.getElementById("name").value.trim();
+    let inputNumber = document.getElementById("number").value.trim();
+
+    let numbers = [];
+
+    if (inputNumber && !isNaN(inputNumber)) {
+        for (let i = 4; i <= inputNumber.length; i++) {
+            numbers.push(inputNumber.substring(0, i));
+        }
+    } else {
+        numbers.push(Math.floor(1000 + Math.random() * 9000));
+    }
+
+    let names = [
+        name,
+        name.toLowerCase(),
+        name.toUpperCase(),
+        name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+    ];
+
+    let symbols = ["@", "#", "&", ""];
+
+    let passwords = new Set();
+
+    names.forEach(n => {
+        numbers.forEach(num => {
+            symbols.forEach(sym => {
+                passwords.add(n + sym + num);
+            });
+        });
+    });
+
+    let result = Array.from(passwords).join("\n");
+
+    document.getElementById("output").innerText = result;
+
+    let blob = new Blob([result], { type: "text/plain" });
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "Pass.txt";
+    a.click();
+}
+</script>
+
+</body>
+</html>
