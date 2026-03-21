@@ -3,55 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Clone</title>
-    <link rel="stylesheet" href="style.css">
+    <title>आपके साथ चैट - Random Video Chat</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background: #121212; color: white; text-align: center; }
+        
+        header { background: #ff4757; padding: 15px; font-size: 24px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        .video-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 20px; height: 60vh; }
+        
+        video { background: #2f3542; width: 45%; max-width: 400px; height: 300px; border-radius: 15px; border: 2px solid #ff4757; object-fit: cover; }
+
+        .controls { margin-top: 20px; }
+        .btn { padding: 15px 30px; font-size: 18px; border: none; border-radius: 30px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .start-btn { background: #2ecc71; color: white; }
+        .stop-btn { background: #e74c3c; color: white; margin-left: 10px; }
+
+        #status { margin: 15px; color: #ced4da; font-style: italic; }
+
+        @media (max-width: 600px) {
+            video { width: 90%; height: 200px; }
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="chat-header">
-            <div class="user-info">
-                <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="avatar">
-                <div class="details">
-                    <h3>ऑनलाइन दोस्त</h3>
-                    <p>ऑनलाइन</p>
-                </div>
-            </div>
-            <div class="actions">
-                <button onclick="startCall('Video')">📹</button>
-                <button onclick="startCall('Audio')">📞</button>
-                <button>⋮</button>
-            </div>
-        </header>
 
-        <main class="chat-window" id="chatBox">
-            <div class="message received">नमस्ते! कैसे हो? <span class="time">10:10 AM</span></div>
-            <div class="message sent">मैं ठीक हूँ, अपना बताओ। <span class="time">10:11 AM</span></div>
-        </main>
+    <header>आपके साथ चैट</header>
 
-        <footer class="input-area">
-            <button class="emoji-btn">😊</button>
-            <input type="text" id="userInput" placeholder="मैसेज लिखें...">
-            <button class="send-btn" onclick="sendMessage()">➤</button>
-        </footer>
+    <div id="status">अपना कैमरा चालू करने के लिए 'Start' दबाएं...</div>
+
+    <div class="video-container">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <video id="remoteVideo" autoplay playsinline></video>
     </div>
 
-    <script>
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const chatBox = document.getElementById('chatBox');
-            if(input.value.trim() !== "") {
-                const msg = document.createElement('div');
-                msg.className = 'message sent';
-                msg.innerHTML = input.value + '<span class="time">अभी</span>';
-                chatBox.appendChild(msg);
-                input.value = "";
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        }
+    <div class="controls">
+        <button class="btn start-btn" onclick="initChat()">Start Chat</button>
+        <button class="btn stop-btn" onclick="location.reload()">Next / Stop</button>
+    </div>
 
-        function startCall(type) {
-            alert(type + " कॉल फीचर के लिए WebRTC सर्वर की आवश्यकता है। अभी यह सिर्फ एक डेमो है!");
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
