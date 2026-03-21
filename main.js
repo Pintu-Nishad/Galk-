@@ -15,62 +15,31 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const peer = new Peer();
 let localStream;
-let currentFacingMode = "user"; // 'user' मतलब फ्रंट, 'environment' मतलब बैक
+let facingMode = "user";
 
-// 1. कैमरा शुरू करें (1080p)
-async function getMedia(mode) {
-    if(localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-    }
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: 1920, height: 1080, facingMode: mode },
-            audio: true
-        });
-        document.getElementById('localVideo').srcObject = localStream;
-        document.getElementById('callStatus').innerText = "तैयार (Ready)";
-    } catch (e) {
-        console.error(e);
-        document.getElementById('callStatus').innerText = "कैमरा एरर!";
-    }
+async function startMedia(mode) {
+    if(localStream) localStream.getTracks().forEach(track => track.stop());
+    localStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 1920, height: 1080, facingMode: mode },
+        audio: true
+    });
+    document.getElementById('localVideo').srcObject = localStream;
 }
 
-getMedia(currentFacingMode);
+startMedia(facingMode);
 
-// 2. कैमरा स्विच करें
-document.getElementById('switchBtn').onclick = () => {
-    currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
-    getMedia(currentFacingMode);
-};
-
-// 3. म्यूट और वीडियो ऑन/ऑफ
-document.getElementById('muteBtn').onclick = function() {
-    const enabled = localStream.getAudioTracks()[0].enabled;
-    localStream.getAudioTracks()[0].enabled = !enabled;
-    this.classList.toggle('off');
-    document.getElementById('micIcon').innerText = !enabled ? "🎤" : "🔇";
-};
-
-document.getElementById('videoBtn').onclick = function() {
-    const enabled = localStream.getVideoTracks()[0].enabled;
-    localStream.getVideoTracks()[0].enabled = !enabled;
-    this.classList.toggle('off');
-    document.getElementById('camIcon').innerText = !enabled ? "📷" : "🚫";
-};
-
-// 4. अजनबी खोजें (Firebase Logic)
 peer.on('open', (id) => {
     document.getElementById('startBtn').onclick = () => {
-        document.getElementById('callStatus').innerText = "खोज रहे हैं...";
-        const waitingRef = ref(db, 'waitingUsers');
-        onValue(waitingRef, (snapshot) => {
-            const data = snapshot.val();
+        document.getElementById('callStatus').innerText = "Khoj rahe hain...";
+        onValue(ref(db, 'waitingUsers'), (snap) => {
+            const data = snap.val();
             if (data) {
                 const partnerId = Object.values(data)[0];
                 if (partnerId !== id) {
                     const call = peer.call(partnerId, localStream);
-                    handleStream(call);
+                    call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
                     remove(ref(db, 'waitingUsers/' + Object.keys(data)[0]));
+                    document.getElementById('callStatus').innerText = "Connected";
                 }
             } else {
                 set(ref(db, 'waitingUsers/' + id), id);
@@ -80,14 +49,22 @@ peer.on('open', (id) => {
     };
 });
 
-peer.on('call', (call) => {
+peer.on('call', call => {
     call.answer(localStream);
-    handleStream(call);
+    call.on('stream', s => {
+        document.getElementById('remoteVideo').srcObject = s;
+        document.getElementById('callStatus').innerText = "Connected";
+    });
 });
 
-function handleStream(call) {
-    call.on('stream', (remoteStream) => {
-        document.getElementById('remoteVideo').srcObject = remoteStream;
-        document.getElementById('callStatus').innerText = "कनेक्टेड (Live)";
-    });
-}
+// Controls
+document.getElementById('muteBtn').onclick = () => {
+    localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+};
+document.getElementById('videoBtn').onclick = () => {
+    localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
+};
+document.getElementById('switchBtn').onclick = () => {
+    facingMode = (facingMode === "user") ? "environment" : "user";
+    startMedia(facingMode);
+};
