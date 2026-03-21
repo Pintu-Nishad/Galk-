@@ -13,7 +13,7 @@ body { background: var(--bg); color: white; font-family: 'Manrope', sans-serif; 
 .online-tag { background: rgba(16, 185, 129, 0.2); color: var(--emerald); font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); }
 
 /* Call Bar inside Header */
-#callBar { position: absolute; top: 75px; left: 0; width: 100%; height: 55px; background: #064e3b; display: none; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 50; border-bottom: 2px solid var(--emerald); }
+#callBar { position: absolute; top: 20px; left: 0; width: 100%; height: 55px; background: #064e3b; display: none; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 50; border-bottom: 2px solid var(--emerald); }
 .call-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
 .dot { width: 8px; height: 8px; background: var(--emerald); border-radius: 50%; animate: pulse 1s infinite; }
 
