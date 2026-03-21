@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, set, onDisconnect } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, onValue, remove, set, onDisconnect } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
-// आपका Firebase Config (वही जो आपने पहले दिया था)
+// आपका Firebase कॉन्फ़िगरेशन
 const firebaseConfig = {
     apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM",
     authDomain: "galk-55f49.firebaseapp.com",
@@ -14,92 +14,76 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-// PeerJS को High Quality सेटिंग्स के साथ कॉन्फ़िगर करना
-const peer = new Peer(undefined, {
-    debug: 2
-});
-
+const peer = new Peer();
 let localStream;
+let isVideoOn = true;
+let isAudioOn = true;
 
-// 1. कैमरा और ऑडियो को 1080p पर सेट करना
-async function startCamera() {
-    const constraints = {
-        video: {
-            width: { ideal: 1920 }, // 1080p चौड़ाई
-            height: { ideal: 1080 }, // 1080p ऊँचाई
-            frameRate: { ideal: 30, max: 60 } // स्मूथ वीडियो के लिए
-        },
-        audio: {
-            echoCancellation: true, // गूँज कम करने के लिए
-            noiseSuppression: true, // शोर कम करने के लिए
-            autoGainControl: true   // आवाज़ बराबर रखने के लिए
-        }
-    };
-
+// 1. 1080p HD कैमरा सेटअप
+async function initCamera() {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1920, height: 1080, frameRate: 30 },
+            audio: { echoCancellation: true, noiseSuppression: true }
+        });
         document.getElementById('localVideo').srcObject = localStream;
-        document.getElementById('status').innerText = "HD कैमरा और ऑडियो तैयार है।";
-    } catch (err) {
-        console.error("HD एक्सेस में समस्या: ", err);
-        document.getElementById('status').innerText = "Error: कैमरा 1080p सपोर्ट नहीं कर रहा या परमिशन नहीं मिली।";
-        
-        // अगर 1080p फेल हो तो नॉर्मल क्वालिटी पर वापस जाएँ
+        document.getElementById('status').innerText = "HD कैमरा तैयार है। 'Next' दबाएं।";
+    } catch (e) {
+        console.error("1080p फेल, नॉर्मल कैमरा शुरू हो रहा है", e);
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         document.getElementById('localVideo').srcObject = localStream;
     }
 }
 
-startCamera();
+initCamera();
 
-// 2. अजनबी खोजने का लॉजिक (Firebase के साथ)
-peer.on('open', (id) => {
+// 2. रैंडम अजनबी से जुड़ना
+peer.on('open', (myId) => {
     document.getElementById('startBtn').onclick = () => {
-        findPartner(id);
+        const waitingRef = ref(db, 'waitingUsers');
+        document.getElementById('status').innerText = "अजनबी की तलाश...";
+
+        onValue(waitingRef, (snap) => {
+            const data = snap.val();
+            if (data) {
+                const partnerId = Object.values(data)[0];
+                if (partnerId !== myId) {
+                    const call = peer.call(partnerId, localStream);
+                    handleCall(call);
+                    remove(ref(db, 'waitingUsers/' + Object.keys(data)[0]));
+                }
+            } else {
+                set(ref(db, 'waitingUsers/' + myId), myId);
+                onDisconnect(ref(db, 'waitingUsers/' + myId)).remove();
+            }
+        }, { onlyOnce: true });
     };
 });
 
-function findPartner(myId) {
-    const waitingRef = ref(db, 'waitingUsers');
-    document.getElementById('status').innerText = "किसी अजनबी से कनेक्ट हो रहे हैं...";
-
-    onValue(waitingRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            const keys = Object.keys(data);
-            const partnerId = data[keys[0]];
-
-            if (partnerId !== myId) {
-                const call = peer.call(partnerId, localStream);
-                setupCall(call);
-                remove(ref(db, 'waitingUsers/' + keys[0]));
-            }
-        } else {
-            set(ref(db, 'waitingUsers/' + myId), myId);
-            onDisconnect(ref(db, 'waitingUsers/' + myId)).remove();
-        }
-    }, { onlyOnce: true });
-}
-
-// 3. कॉल रिसीव करना और स्ट्रीम सेट करना
+// 3. कॉल संभालना
 peer.on('call', (call) => {
-    call.answer(localStream); // अपना HD स्ट्रीम भेजें
-    setupCall(call);
+    call.answer(localStream);
+    handleCall(call);
 });
 
-function setupCall(call) {
+function handleCall(call) {
     call.on('stream', (remoteStream) => {
-        const remoteVideo = document.getElementById('remoteVideo');
-        remoteVideo.srcObject = remoteStream;
-        document.getElementById('status').innerText = "कनेक्टेड: 1080p क्वालिटी एक्टिव है।";
-        
-        // सुनिश्चित करें कि वीडियो सही से चले
-        remoteVideo.onloadedmetadata = () => remoteVideo.play();
-    });
-    
-    // अगर कॉल कट जाए
-    call.on('close', () => {
-        document.getElementById('status').innerText = "अजनबी ने कॉल काट दी।";
+        document.getElementById('remoteVideo').srcObject = remoteStream;
+        document.getElementById('status').innerText = "कनेक्टेड! (1080p)";
     });
 }
+
+// 4. कैमरा और माइक कंट्रोल
+document.getElementById('toggleVideo').onclick = () => {
+    isVideoOn = !isVideoOn;
+    localStream.getVideoTracks()[0].enabled = isVideoOn;
+    document.getElementById('toggleVideo').innerText = isVideoOn ? "📷 Video ON" : "🚫 Video OFF";
+    document.getElementById('toggleVideo').style.background = isVideoOn ? "#34495e" : "#e74c3c";
+};
+
+document.getElementById('toggleAudio').onclick = () => {
+    isAudioOn = !isAudioOn;
+    localStream.getAudioTracks()[0].enabled = isAudioOn;
+    document.getElementById('toggleAudio').innerText = isAudioOn ? "🎤 Mic ON" : "🔇 Mic OFF";
+    document.getElementById('toggleAudio').style.background = isAudioOn ? "#34495e" : "#e74c3c";
+};
