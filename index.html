@@ -3,33 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आपके साथ चैट - HD रैंडम वीडियो कॉल</title>
+    <title>आपके साथ चैट - Full Screen Video</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-    <header>
-        <h1>आपके साथ चैट</h1>
-        <div id="status">कैमरा अनुमति का इंतज़ार है...</div>
-    </header>
+    <div class="video-container">
+        <video id="remoteVideo" class="remote-v" autoplay playsinline></video>
+        
+        <video id="localVideo" class="local-v" autoplay muted playsinline></video>
 
-    <div class="video-grid">
-        <div class="video-wrapper">
-            <video id="localVideo" autoplay muted playsinline></video>
-            <div class="label">आप (You)</div>
+        <div class="overlay-top">
+            <h1>आपके साथ चैट</h1>
+            <p id="status">कैमरा शुरू हो रहा है...</p>
         </div>
-        <div class="video-wrapper">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <div class="label">अजनबी (Stranger)</div>
-        </div>
-    </div>
 
-    <div class="controls">
-        <button id="startBtn" class="btn next-btn">Next अजनबी</button>
-        <button id="toggleVideo" class="btn control-btn">📷 Video ON</button>
-        <button id="toggleAudio" class="btn control-btn">🎤 Mic ON</button>
-        <button class="btn stop-btn" onclick="location.reload()">Stop / Reset</button>
+        <div class="overlay-bottom">
+            <button id="startBtn" class="btn next-btn">Next अजनबी</button>
+            <button id="toggleVideo" class="btn control-btn">📷 Video</button>
+            <button id="toggleAudio" class="btn control-btn">🎤 Mic</button>
+            <button class="btn stop-btn" onclick="location.reload()">Stop</button>
+        </div>
     </div>
 
     <script type="module" src="main.js"></script>
