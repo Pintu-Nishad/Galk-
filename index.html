@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>P2K Pro V13 - Secure Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>P2K SECURE V42</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -11,46 +11,57 @@
 </head>
 <body>
 
-<div id="zoomOverlay" onclick="this.style.display='none'"><img id="zoomImg" src=""></div>
-
-<div id="loginDiv" class="fixed inset-0 z-[1000] bg-[#111b21] flex items-center justify-center p-6 text-center">
-    <div class="w-full max-w-sm bg-[#202c33] p-8 rounded-2xl shadow-2xl">
-        <h1 class="text-2xl font-bold mb-6 text-[#00a884]">P2K Secure</h1>
-        <input id="user" type="text" placeholder="Name" class="w-full bg-[#2a3942] rounded-lg p-3 mb-4 outline-none text-white">
-        <input id="pass" type="password" placeholder="Room ID" class="w-full bg-[#2a3942] rounded-lg p-3 mb-6 outline-none text-white">
-        <button onclick="enter()" class="w-full bg-[#00a884] py-3 rounded-lg font-bold text-[#111b21]">Join Chat</button>
+<div id="loginDiv">
+    <div class="login-card">
+        <h1 class="logo-text">P2K SECURE</h1>
+        <input id="user" type="text" placeholder="Username" class="input-field">
+        <input id="pass" type="password" placeholder="Room ID" class="input-field">
+        <button onclick="enter()" class="btn-primary">START SESSION</button>
     </div>
 </div>
 
 <div id="chatDiv" class="hidden h-full flex flex-col">
-    <header class="h-14 bg-[#202c33] flex items-center justify-between px-4 border-b border-gray-800">
-        <button onclick="location.reload()" class="text-red-400 text-[10px] font-bold">EXIT</button>
-        <div class="text-center">
-            <b id="roomTitle" class="text-xs text-white">Room</b>
-            <span id="userCounter" class="text-[8px] block text-[#00a884]">Online: 0</span>
+    <header class="header">
+        <div class="header-left">
+            <span id="userCounter" class="badge">Online: 0</span>
+            <span id="roomTitle" class="room-id"></span>
         </div>
-        <button onclick="startCall()" class="bg-[#00a884] text-[#111b21] px-4 py-1.5 rounded-full font-bold text-xs">VIDEO CALL</button>
+        <div class="header-right">
+            <button onclick="startCall()" class="icon-btn"><img src="https://cdn-icons-png.flaticon.com/512/724/724664.png"></button>
+            <div class="vanish-toggle">
+                <input type="checkbox" id="ghostMode" checked> <span>VANISH</span>
+            </div>
+        </div>
+
+        <div id="callUI" class="hidden">
+            <div class="video-container">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <video id="localVideo" autoplay playsinline muted></video>
+                
+                <div class="call-info">
+                    <span id="callTimer">00:00</span>
+                    <p>SECURE CONNECTION</p>
+                </div>
+
+                <div class="call-controls">
+                    <button onclick="switchCamera()" class="ctrl-btn"><img src="https://cdn-icons-png.flaticon.com/512/1829/1829322.png"></button>
+                    <button onclick="endCall()" class="ctrl-btn hangup"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828843.png"></button>
+                    <button onclick="toggleFlash()" class="ctrl-btn"><img src="https://cdn-icons-png.flaticon.com/512/4414/4414702.png"></button>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <div id="chatBox"></div>
+    <div id="chatBox" class="msg-area"></div>
 
-    <footer class="input-area">
-        <input type="checkbox" id="ghostMode" class="w-4 h-4 accent-[#00a884]">
-        <input type="file" id="fileInput" accept="image/*" onchange="sendPhoto(this)" class="hidden">
-        <button onclick="document.getElementById('fileInput').click()" class="text-[#8696a0] text-xl">📎</button>
-        <input id="msgInput" type="text" placeholder="Message..." class="flex-1 bg-[#2a3942] rounded-full px-4 py-2 text-sm outline-none text-white">
-        <button onclick="sendMsg()" class="bg-[#00a884] p-2.5 rounded-full text-[#111b21]">➤</button>
+    <footer class="footer">
+        <div class="input-wrap">
+            <input type="file" id="photoIn" accept="image/*" onchange="sendPhoto(this)" class="hidden">
+            <button onclick="document.getElementById('photoIn').click()" class="icon-btn-small"><img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png"></button>
+            <input id="msgInput" type="text" placeholder="Type message...">
+            <button onclick="sendMsg()" class="icon-btn-small"><img src="https://cdn-icons-png.flaticon.com/512/3106/3106856.png"></button>
+        </div>
     </footer>
-</div>
-
-<div id="callUI">
-    <video id="remoteVideo" autoplay playsinline></video>
-    <video id="localVideo" autoplay playsinline muted></video>
-    <div class="call-tools">
-        <button onclick="toggleFlash()" class="tool-btn">💡</button>
-        <button onclick="switchCamera()" class="tool-btn">🔄</button>
-        <button onclick="endCall()" class="tool-btn bg-red-600">📞</button>
-    </div>
 </div>
 
 <script src="script.js"></script>
