@@ -2,28 +2,39 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आपके साथ चैट - Full Screen Video</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>आपके साथ चैट - HD Full Screen</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-    <div class="video-container">
-        <video id="remoteVideo" class="remote-v" autoplay playsinline></video>
+    <div class="main-screen">
+        <video id="remoteVideo" autoplay playsinline class="remote-video"></video>
         
-        <video id="localVideo" class="local-v" autoplay muted playsinline></video>
+        <video id="localVideo" autoplay muted playsinline class="local-video"></video>
 
-        <div class="overlay-top">
-            <h1>आपके साथ चैट</h1>
-            <p id="status">कैमरा शुरू हो रहा है...</p>
+        <div class="top-bar">
+            <div class="logo">आपके साथ चैट</div>
+            <div id="callStatus" class="status-badge">कैमरा सेटअप...</div>
         </div>
 
-        <div class="overlay-bottom">
-            <button id="startBtn" class="btn next-btn">Next अजनबी</button>
-            <button id="toggleVideo" class="btn control-btn">📷 Video</button>
-            <button id="toggleAudio" class="btn control-btn">🎤 Mic</button>
-            <button class="btn stop-btn" onclick="location.reload()">Stop</button>
+        <div class="bottom-controls">
+            <button id="muteBtn" class="icon-btn" title="Mute/Unmute">
+                <span id="micIcon">🎤</span>
+            </button>
+
+            <button id="videoBtn" class="icon-btn" title="Camera On/Off">
+                <span id="camIcon">📷</span>
+            </button>
+
+            <button id="switchBtn" class="icon-btn" title="Switch Camera">
+                🔄
+            </button>
+
+            <button id="startBtn" class="action-btn next">Next</button>
+
+            <button id="endBtn" class="action-btn end" onclick="location.reload()">End</button>
         </div>
     </div>
 
