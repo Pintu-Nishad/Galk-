@@ -3,46 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आपके साथ चैट - Random Video Chat</title>
+    <title>आपके साथ चैट - HD रैंडम वीडियो कॉल</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background: #121212; color: white; text-align: center; }
-        
-        header { background: #ff4757; padding: 15px; font-size: 24px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-
-        .video-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 20px; height: 60vh; }
-        
-        video { background: #2f3542; width: 45%; max-width: 400px; height: 300px; border-radius: 15px; border: 2px solid #ff4757; object-fit: cover; }
-
-        .controls { margin-top: 20px; }
-        .btn { padding: 15px 30px; font-size: 18px; border: none; border-radius: 30px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        .start-btn { background: #2ecc71; color: white; }
-        .stop-btn { background: #e74c3c; color: white; margin-left: 10px; }
-
-        #status { margin: 15px; color: #ced4da; font-style: italic; }
-
-        @media (max-width: 600px) {
-            video { width: 90%; height: 200px; }
-        }
-    </style>
 </head>
 <body>
 
-    <header>आपके साथ चैट</header>
+    <header>
+        <h1>आपके साथ चैट</h1>
+        <div id="status">कैमरा अनुमति का इंतज़ार है...</div>
+    </header>
 
-    <div id="status">अपना कैमरा चालू करने के लिए 'Start' दबाएं...</div>
-
-    <div class="video-container">
-        <video id="localVideo" autoplay muted playsinline></video>
-        <video id="remoteVideo" autoplay playsinline></video>
+    <div class="video-grid">
+        <div class="video-wrapper">
+            <video id="localVideo" autoplay muted playsinline></video>
+            <div class="label">आप (You)</div>
+        </div>
+        <div class="video-wrapper">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="label">अजनबी (Stranger)</div>
+        </div>
     </div>
 
     <div class="controls">
-        <button class="btn start-btn" onclick="initChat()">Start Chat</button>
-        <button class="btn stop-btn" onclick="location.reload()">Next / Stop</button>
+        <button id="startBtn" class="btn next-btn">Next अजनबी</button>
+        <button id="toggleVideo" class="btn control-btn">📷 Video ON</button>
+        <button id="toggleAudio" class="btn control-btn">🎤 Mic ON</button>
+        <button class="btn stop-btn" onclick="location.reload()">Stop / Reset</button>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
