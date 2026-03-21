@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="chat-header">
+            <div class="user-info">
+                <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="avatar">
+                <div class="details">
+                    <h3>ऑनलाइन दोस्त</h3>
+                    <p>ऑनलाइन</p>
+                </div>
+            </div>
+            <div class="actions">
+                <button onclick="startCall('Video')">📹</button>
+                <button onclick="startCall('Audio')">📞</button>
+                <button>⋮</button>
+            </div>
+        </header>
+
+        <main class="chat-window" id="chatBox">
+            <div class="message received">नमस्ते! कैसे हो? <span class="time">10:10 AM</span></div>
+            <div class="message sent">मैं ठीक हूँ, अपना बताओ। <span class="time">10:11 AM</span></div>
+        </main>
+
+        <footer class="input-area">
+            <button class="emoji-btn">😊</button>
+            <input type="text" id="userInput" placeholder="मैसेज लिखें...">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </footer>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            if(input.value.trim() !== "") {
+                const msg = document.createElement('div');
+                msg.className = 'message sent';
+                msg.innerHTML = input.value + '<span class="time">अभी</span>';
+                chatBox.appendChild(msg);
+                input.value = "";
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        function startCall(type) {
+            alert(type + " कॉल फीचर के लिए WebRTC सर्वर की आवश्यकता है। अभी यह सिर्फ एक डेमो है!");
+        }
+    </script>
+</body>
+</html>
