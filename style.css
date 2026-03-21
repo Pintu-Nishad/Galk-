@@ -17,7 +17,7 @@ body { background: var(--dark); color: white; font-family: 'Manrope', sans-serif
 .my-msg { background: #059669; align-self: flex-end; }
 
 /* Call UI Overlay */
-#callUI { position: fixed; inset: 0; background: black; z-index: 50; }
+#callUI { position: fixed; inset: 0; background: black; z-index: 500; }
 .video-container { position: relative; width: 100%; height: 100%; }
 #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
 #localVideo { position: absolute; bottom: 100px; right: 20px; width: 100px; height: 150px; border-radius: 12px; border: 2px solid var(--emerald); object-fit: cover; }
