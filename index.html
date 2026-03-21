@@ -3,38 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>आपके साथ चैट - HD Full Screen</title>
+    <title>Aapke Saath Chat | Split Screen</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-    <div class="main-screen">
-        <video id="remoteVideo" autoplay playsinline class="remote-video"></video>
-        
-        <video id="localVideo" autoplay muted playsinline class="local-video"></video>
-
-        <div class="top-bar">
-            <div class="logo">आपके साथ चैट</div>
-            <div id="callStatus" class="status-badge">कैमरा सेटअप...</div>
+    <div class="split-container">
+        <div class="video-box top">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="label">Ajnabi (Stranger)</div>
         </div>
 
-        <div class="bottom-controls">
-            <button id="muteBtn" class="icon-btn" title="Mute/Unmute">
-                <span id="micIcon">🎤</span>
-            </button>
+        <div class="mid-controls">
+            <button id="muteBtn" class="icon-btn">🎤</button>
+            <button id="videoBtn" class="icon-btn">📷</button>
+            <button id="startBtn" class="next-btn">Next</button>
+            <button id="switchBtn" class="icon-btn">🔄</button>
+            <button id="endBtn" class="end-btn" onclick="location.reload()">End</button>
+        </div>
 
-            <button id="videoBtn" class="icon-btn" title="Camera On/Off">
-                <span id="camIcon">📷</span>
-            </button>
-
-            <button id="switchBtn" class="icon-btn" title="Switch Camera">
-                🔄
-            </button>
-
-            <button id="startBtn" class="action-btn next">Next</button>
-
-            <button id="endBtn" class="action-btn end" onclick="location.reload()">End</button>
+        <div class="video-box bottom">
+            <video id="localVideo" autoplay muted playsinline></video>
+            <div class="label">Aap (You)</div>
+            <div id="callStatus" class="status-text">Taiyaar ho rahe hain...</div>
         </div>
     </div>
 
