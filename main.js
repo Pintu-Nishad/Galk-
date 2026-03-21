@@ -15,38 +15,66 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const peer = new Peer();
 let localStream;
+let currentFacingMode = "user"; // 'user' मतलब फ्रंट, 'environment' मतलब बैक
 
-async function initCamera() {
+// 1. कैमरा शुरू करें (1080p)
+async function getMedia(mode) {
+    if(localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+    }
     try {
         localStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: 1920, height: 1080 },
+            video: { width: 1920, height: 1080, facingMode: mode },
             audio: true
         });
         document.getElementById('localVideo').srcObject = localStream;
-        document.getElementById('status').innerText = "HD कैमरा तैयार है";
+        document.getElementById('callStatus').innerText = "तैयार (Ready)";
     } catch (e) {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        document.getElementById('localVideo').srcObject = localStream;
+        console.error(e);
+        document.getElementById('callStatus').innerText = "कैमरा एरर!";
     }
 }
 
-initCamera();
+getMedia(currentFacingMode);
 
-peer.on('open', (myId) => {
+// 2. कैमरा स्विच करें
+document.getElementById('switchBtn').onclick = () => {
+    currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+    getMedia(currentFacingMode);
+};
+
+// 3. म्यूट और वीडियो ऑन/ऑफ
+document.getElementById('muteBtn').onclick = function() {
+    const enabled = localStream.getAudioTracks()[0].enabled;
+    localStream.getAudioTracks()[0].enabled = !enabled;
+    this.classList.toggle('off');
+    document.getElementById('micIcon').innerText = !enabled ? "🎤" : "🔇";
+};
+
+document.getElementById('videoBtn').onclick = function() {
+    const enabled = localStream.getVideoTracks()[0].enabled;
+    localStream.getVideoTracks()[0].enabled = !enabled;
+    this.classList.toggle('off');
+    document.getElementById('camIcon').innerText = !enabled ? "📷" : "🚫";
+};
+
+// 4. अजनबी खोजें (Firebase Logic)
+peer.on('open', (id) => {
     document.getElementById('startBtn').onclick = () => {
+        document.getElementById('callStatus').innerText = "खोज रहे हैं...";
         const waitingRef = ref(db, 'waitingUsers');
-        onValue(waitingRef, (snap) => {
-            const data = snap.val();
+        onValue(waitingRef, (snapshot) => {
+            const data = snapshot.val();
             if (data) {
                 const partnerId = Object.values(data)[0];
-                if (partnerId !== myId) {
+                if (partnerId !== id) {
                     const call = peer.call(partnerId, localStream);
-                    handleCall(call);
+                    handleStream(call);
                     remove(ref(db, 'waitingUsers/' + Object.keys(data)[0]));
                 }
             } else {
-                set(ref(db, 'waitingUsers/' + myId), myId);
-                onDisconnect(ref(db, 'waitingUsers/' + myId)).remove();
+                set(ref(db, 'waitingUsers/' + id), id);
+                onDisconnect(ref(db, 'waitingUsers/' + id)).remove();
             }
         }, { onlyOnce: true });
     };
@@ -54,22 +82,12 @@ peer.on('open', (myId) => {
 
 peer.on('call', (call) => {
     call.answer(localStream);
-    handleCall(call);
+    handleStream(call);
 });
 
-function handleCall(call) {
+function handleStream(call) {
     call.on('stream', (remoteStream) => {
-        const remoteVideo = document.getElementById('remoteVideo');
-        remoteVideo.srcObject = remoteStream;
-        remoteVideo.play();
-        document.getElementById('status').innerText = "कनेक्टेड (1080p)";
+        document.getElementById('remoteVideo').srcObject = remoteStream;
+        document.getElementById('callStatus').innerText = "कनेक्टेड (Live)";
     });
 }
-
-// कैमरा/माइक बटन लॉजिक
-document.getElementById('toggleVideo').onclick = () => {
-    localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
-};
-document.getElementById('toggleAudio').onclick = () => {
-    localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
-};
