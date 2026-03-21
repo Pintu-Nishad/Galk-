@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>P2K SECURE V42</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>P2K SECURE V43</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -12,55 +12,59 @@
 <body>
 
 <div id="loginDiv">
-    <div class="login-card">
-        <h1 class="logo-text">P2K SECURE</h1>
-        <input id="user" type="text" placeholder="Username" class="input-field">
-        <input id="pass" type="password" placeholder="Room ID" class="input-field">
-        <button onclick="enter()" class="btn-primary">START SESSION</button>
+    <div class="login-box">
+        <h1 class="logo">P2K SECURE</h1>
+        <input id="user" type="text" placeholder="Username" class="input">
+        <input id="pass" type="password" placeholder="Room ID" class="input">
+        <button onclick="enter()" class="enter-btn">START SESSION</button>
     </div>
 </div>
 
-<div id="chatDiv" class="hidden h-full flex flex-col">
+<div id="appUI" class="hidden">
     <header class="header">
-        <div class="header-left">
-            <span id="userCounter" class="badge">Online: 0</span>
-            <span id="roomTitle" class="room-id"></span>
+        <div class="header-info">
+            <div id="userCounter" class="online-tag">ONLINE: 0</div>
+            <div id="typingInfo" class="typing-text"></div>
         </div>
-        <div class="header-right">
-            <button onclick="startCall()" class="icon-btn"><img src="https://cdn-icons-png.flaticon.com/512/724/724664.png"></button>
-            <div class="vanish-toggle">
-                <input type="checkbox" id="ghostMode" checked> <span>VANISH</span>
+        <div class="header-actions">
+            <button onclick="initiateCall()" class="call-trigger">
+                <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" alt="Call">
+            </button>
+            <div class="vanish-box">
+                <input type="checkbox" id="ghostMode" checked>
+                <span>VANISH</span>
             </div>
         </div>
-
-        <div id="callUI" class="hidden">
-            <div class="video-container">
-                <video id="remoteVideo" autoplay playsinline></video>
-                <video id="localVideo" autoplay playsinline muted></video>
-                
-                <div class="call-info">
-                    <span id="callTimer">00:00</span>
-                    <p>SECURE CONNECTION</p>
-                </div>
-
-                <div class="call-controls">
-                    <button onclick="switchCamera()" class="ctrl-btn"><img src="https://cdn-icons-png.flaticon.com/512/1829/1829322.png"></button>
-                    <button onclick="endCall()" class="ctrl-btn hangup"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828843.png"></button>
-                    <button onclick="toggleFlash()" class="ctrl-btn"><img src="https://cdn-icons-png.flaticon.com/512/4414/4414702.png"></button>
-                </div>
+        
+        <div id="callBar">
+            <div class="call-label">
+                <div class="dot"></div>
+                <span id="callerLabel">Incoming...</span>
+            </div>
+            <div class="call-btns">
+                <button onclick="ignoreCall()" class="decline-btn">✖</button>
+                <button id="acceptBtn" onclick="acceptCall()" class="confirm-btn">✔</button>
             </div>
         </div>
     </header>
 
-    <div id="chatBox" class="msg-area"></div>
+    <div id="chatBox" class="msg-container"></div>
 
     <footer class="footer">
-        <div class="input-wrap">
-            <input type="file" id="photoIn" accept="image/*" onchange="sendPhoto(this)" class="hidden">
-            <button onclick="document.getElementById('photoIn').click()" class="icon-btn-small"><img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png"></button>
-            <input id="msgInput" type="text" placeholder="Type message...">
-            <button onclick="sendMsg()" class="icon-btn-small"><img src="https://cdn-icons-png.flaticon.com/512/3106/3106856.png"></button>
+        <div class="input-bar">
+            <input type="file" id="fileIn" accept="image/*" onchange="sendPhoto(this)" class="hidden">
+            <button onclick="document.getElementById('fileIn').click()" class="action-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png">
+            </button>
+            <button id="recBtn" class="action-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/1082/1082810.png">
+            </button>
+            <input id="msgInput" type="text" placeholder="60s Vanish Mode On...">
+            <button onclick="sendMsg()" class="send-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/3106/3106856.png">
+            </button>
         </div>
+        <button id="hangupBtn" onclick="leaveCall()" class="hidden hangup-bar">END CALL SESSION</button>
     </footer>
 </div>
 
