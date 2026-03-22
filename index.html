@@ -1,73 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>P2K SECURE V43</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2K - Secure Chat</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
-
-<div id="loginDiv">
-    <div class="login-box">
-        <h1 class="logo">P2K SECURE</h1>
-        <input id="user" type="text" placeholder="Username" class="input">
-        <input id="pass" type="password" placeholder="Room ID" class="input">
-        <button onclick="enter()" class="enter-btn">START SESSION</button>
-    </div>
-</div>
-
-<div id="appUI" class="hidden">
-    <header class="header">
-        <div class="header-info">
-            <div id="userCounter" class="online-tag">ONLINE: 0</div>
-            <div id="typingInfo" class="typing-text"></div>
+    <header id="main-header">
+        <div class="user-info">
+            <span id="room-name">ग्रुप रूम</span>
+            <span id="online-count">5 ऑनलाइन</span>
         </div>
         <div class="header-actions">
-            <button onclick="initiateCall()" class="call-trigger">
-                <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" alt="Call">
-            </button>
-            <div class="vanish-box">
-                <input type="checkbox" id="ghostMode" checked>
-                <span>VANISH</span>
-            </div>
-        </div>
-        
-        <div id="callBar">
-            <div class="call-label">
-                <div class="dot"></div>
-                <span id="callerLabel">Incoming...</span>
-            </div>
-            <div class="call-btns">
-                <button onclick="ignoreCall()" class="decline-btn">✖</button>
-                <button id="acceptBtn" onclick="acceptCall()" class="confirm-btn">✔</button>
-            </div>
+            <button id="group-call-btn">📞</button>
+            <button id="settings-btn">⚙️</button>
         </div>
     </header>
 
-    <div id="chatBox" class="msg-container"></div>
-
-    <footer class="footer">
-        <div class="input-bar">
-            <input type="file" id="fileIn" accept="image/*" onchange="sendPhoto(this)" class="hidden">
-            <button onclick="document.getElementById('fileIn').click()" class="action-icon">
-                <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png">
-            </button>
-            <button id="recBtn" class="action-icon">
-                <img src="https://cdn-icons-png.flaticon.com/512/1082/1082810.png">
-            </button>
-            <input id="msgInput" type="text" placeholder="60s Vanish Mode On...">
-            <button onclick="sendMsg()" class="send-icon">
-                <img src="https://cdn-icons-png.flaticon.com/512/3106/3106856.png">
-            </button>
+    <div id="call-notification" class="call-popup hidden">
+        <div class="call-info">
+            <span>Incoming Group Call...</span>
         </div>
-        <button id="hangupBtn" onclick="leaveCall()" class="hidden hangup-bar">END CALL SESSION</button>
-    </footer>
-</div>
+        <div class="call-btns">
+            <button id="accept-call" class="btn-accept">Accept</button>
+            <button id="reject-call" class="btn-reject">Reject</button>
+        </div>
+    </div>
 
-<script src="script.js"></script>
+    <main id="chat-window">
+        <div id="messages-container">
+            </div>
+    </main>
+    <footer id="chat-footer">
+        <button id="attach-btn">+</button>
+        <div id="media-menu" class="hidden">
+            <button title="Photo">📷</button>
+            <button title="Video">🎥</button>
+        </div>
+        <input type="text" id="msg-input" placeholder="संदेश लिखें...">
+        <button id="send-btn">Send</button>
+        <button id="mic-btn">🎤</button>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
