@@ -1,130 +1,91 @@
-<!DOCTYPE html>
-<html lang="hi">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>P2K SECURE - V3 PRO</title>
-    <style>
-        :root { --p: #800000; --g: #ffd700; --bg: #0b0d0f; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: white; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* Login Screen */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: #161b22; padding: 30px; border-radius: 20px; border: 2px solid var(--p); width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 30px rgba(128,0,0,0.6); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid var(--p); background: #000; color: white; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--g); box-shadow: 0 0 10px var(--g); }
-        .btn { background: var(--p); color: var(--g); border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-
-        /* Master Admin Panel */
-        #admin-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .admin-card { background: #161b22; padding: 25px; border-radius: 20px; border: 2px solid var(--g); width: 90%; text-align: center; }
-
-        /* Main UI */
-        header { background: #161b22; padding: 15px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--p); box-shadow: 0 4px 10px black; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); display: flex; flex-direction: column; gap: 10px; padding-bottom: 90px; }
-        .msg { background: rgba(128, 0, 0, 0.2); padding: 12px; border-radius: 15px 15px 15px 2px; max-width: 85%; border-left: 4px solid var(--p); align-self: flex-start; animation: slide 0.3s ease; }
-        @keyframes slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .msg b { color: var(--g); font-size: 0.75rem; display: block; margin-bottom: 4px; }
-        
-        /* Call UI */
-        #call-ui { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 4000; }
-        .mute-btn { background: var(--g); color: black; border: none; padding: 10px 25px; border-radius: 25px; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
-
-        footer { position: fixed; bottom: 0; width: 100%; background: #161b22; padding: 12px; display: flex; gap: 10px; border-top: 1px solid #333; }
-        #m { flex: 1; margin: 0; border-radius: 25px; padding-left: 20px; }
-        .send { background: var(--p); color: var(--g); border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Chat + Call</title>
+<style>
+body{margin:0;font-family:sans-serif;background:#0f172a;color:white}
+#app{display:flex;flex-direction:column;height:100vh}
+header{background:#1e293b;padding:10px;display:flex;justify-content:space-between;align-items:center}
+#messages{flex:1;overflow:auto;padding:10px}
+.msg{background:#334155;margin:5px;padding:8px;border-radius:8px}
+.join{color:lightgreen}
+.left{color:red}
+#inputBox{display:flex;padding:10px;background:#1e293b}
+input{flex:1;padding:10px;border:none;border-radius:5px}
+button{margin-left:5px;padding:10px;border:none;border-radius:5px;background:#22c55e;color:white}
+#callBox{position:fixed;bottom:10px;right:10px;width:200px;height:150px;background:black;border-radius:10px;display:none}
+</style>
 </head>
 <body>
+<div id="app">
+<header>
+<span id="roomTitle">Room</span>
+<button onclick="startCall()">📞</button>
+</header><div id="messages"></div><div id="inputBox">
+<input id="msg" placeholder="Type message">
+<button onclick="sendMsg()">Send</button>
+</div>
+</div><div id="callBox"></div><script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-    <div id="auth-screen">
-        <div class="card">
-            <h2 style="color:var(--g)">P2K PORTAL</h2>
-            <input type="text" id="u-in" placeholder="Username">
-            <input type="password" id="p-in" placeholder="Room/Master Password">
-            <button class="btn" onclick="auth()">ACCESS GRANTED</button>
-        </div>
-    </div>
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "galk-55f49.firebaseapp.com",
+  projectId: "galk-55f49"
+};
 
-    <div id="admin-panel">
-        <div class="admin-card">
-            <h1 style="color:var(--g)">⚡ MASTER CONTROL</h1>
-            <input type="text" id="room-wipe" placeholder="Room Name to Wipe" style="width:100%;">
-            <button class="btn" onclick="doWipe()">WIPE ROOM DATABASE</button>
-            <button class="btn" style="background:#444; margin-top:10px;" onclick="location.reload()">LOGOUT</button>
-        </div>
-    </div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    <header>
-        <div id="r-tag" style="color:var(--g); font-weight:bold; letter-spacing:1px;">P2K SECURE</div>
-        <button onclick="window.startCall()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; filter: drop-shadow(0 0 5px var(--g));">🤙</button>
-    </header>
+let room = prompt("Room ID");
+let user = prompt("Your Name");
 
-    <div id="call-ui">
-        <h2 style="color:red; letter-spacing:2px;">SECURE LINE ACTIVE</h2>
-        <button class="mute-btn" id="mt-btn" onclick="window.mute()">MUTE 🎤</button>
-        <button onclick="window.endCall()" style="background:red; color:white; border:none; padding:12px 35px; border-radius:30px; font-weight:bold;">HANG UP</button>
-    </div>
+const msgRef = collection(db, "rooms", room, "messages");
 
-    <div id="chat-box"></div>
+// Join message
+addDoc(msgRef,{type:"join",user,time:Date.now()});
 
-    <footer>
-        <input type="text" id="m" placeholder="Secure Message..." onkeypress="if(event.key==='Enter') send()">
-        <button class="send" onclick="send()">➤</button>
-    </footer>
+// Listen messages
+onSnapshot(msgRef,(snap)=>{
+let html="";
+snap.forEach(doc=>{
+let d = doc.data();
+if(d.type=="join") html+=`<div class='join'>${d.user} joined</div>`;
+else if(d.type=="left") html+=`<div class='left'>${d.user} left</div>`;
+else html+=`<div class='msg'><b>${d.user}:</b> ${d.text}</div>`;
 
-    <audio id="pop" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
+// Auto delete after 1 min
+if(Date.now()-d.time > 60000){ deleteDoc(doc.ref); }
+});
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        
-        const config = { apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM", projectId: "galk-55f49", databaseURL: "https://galk-55f49-default-rtdb.firebaseio.com" };
-        const app = initializeApp(config); const db = getDatabase(app);
-        
-        let uName = ""; let roomID = ""; let isMuted = false;
+document.getElementById('messages').innerHTML=html;
+});
 
-        window.auth = () => {
-            const n = document.getElementById('u-in').value;
-            const p = document.getElementById('p-in').value;
-            if(!n || !p) return;
+window.sendMsg = function(){
+let text = document.getElementById('msg').value;
+addDoc(msgRef,{type:"msg",user,text,time:Date.now()});
+document.getElementById('msg').value="";
+}
 
-            // Admin Logic
-            if(n === "Pintu" && p === "1466586") {
-                document.getElementById('admin-panel').style.display = 'flex';
-                return;
-            }
+// Leave event
+window.onbeforeunload = ()=>{
+addDoc(msgRef,{type:"left",user,time:Date.now()});
+}
 
-            uName = n; roomID = p;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('r-tag').innerText = "ROOM: " + p;
-            
-            const rRef = ref(db, 'rooms/' + roomID);
-            onChildAdded(rRef, (s) => {
-                const d = document.createElement('div'); d.className='msg';
-                d.innerHTML = `<b>@${s.val().u} • ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</b>${s.val().t}`;
-                const box = document.getElementById('chat-box');
-                box.appendChild(d);
-                box.scrollTop = box.scrollHeight;
-                document.getElementById('pop').play().catch(()=>{});
-            });
+// CALL SYSTEM (basic WebRTC placeholder)
+window.startCall = function(){
+let box = document.getElementById('callBox');
+box.style.display='block';
+box.innerHTML="Call Started (upgrade me full system dunga)";
+}
 
-            window.send = () => {
-                const i = document.getElementById('m');
-                if(i.value.trim()) { push(rRef, { u: uName, t: i.value }); i.value = ''; }
-            };
-        };
+// Disable right click & inspect
+window.addEventListener('contextmenu',e=>e.preventDefault());
+document.onkeydown = function(e){
+if(e.key=="F12") return false;
+}
 
-        window.doWipe = () => {
-            const t = document.getElementById('room-wipe').value;
-            if(t && confirm("Uda du sara data?")) { remove(ref(db, 'rooms/' + t)); alert("Wiped!"); }
-        };
-
-        window.startCall = () => set(ref(db, 'calls/active'), true);
-        window.endCall = () => set(ref(db, 'calls/active'), null);
-        onValue(ref(db, 'calls/active'), (s) => { document.getElementById('call-ui').style.display = s.val() ? 'flex' : 'none'; });
-        window.mute = () => { isMuted = !isMuted; document.getElementById('mt-btn').innerText = isMuted ? "UNMUTE 🔇" : "MUTE 🎤"; };
-    </script>
-</body>
+</script></body>
 </html>
