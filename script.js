@@ -1,6 +1,8 @@
+// script.js - Full Firebase Logic for P2K
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// आपकी Firebase कॉन्फ़िगरेशन
 const firebaseConfig = {
     apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM",
     authDomain: "galk-55f49.firebaseapp.com",
@@ -10,82 +12,92 @@ const firebaseConfig = {
     appId: "1:1005825050326:web:fda4271183b4c4ff106b77"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+// References
 const messagesRef = ref(db, 'messages');
+const callRef = ref(db, 'calls/currentStatus');
 
 // DOM Elements
 const msgInput = document.getElementById('msg-input');
 const sendBtn = document.getElementById('send-btn');
-const messagesContainer = document.getElementById('messages-container');
+const chatWindow = document.getElementById('chat-window');
+const callPopup = document.getElementById('call-notification');
+const groupCallBtn = document.getElementById('group-call-btn');
+const acceptBtn = document.getElementById('accept-call');
+const rejectBtn = document.getElementById('reject-call');
 
-// मैसेज भेजें
-sendBtn.onclick = () => {
-    const text = msgInput.value;
-    if (text.trim() !== "") {
+// --- 1. चैटिंग लॉजिक ---
+
+// मैसेज भेजने का फंक्शन
+const sendMessage = () => {
+    const text = msgInput.value.trim();
+    if (text !== "") {
         push(messagesRef, {
             text: text,
             timestamp: Date.now(),
-            sender: "User_" + Math.floor(Math.random() * 1000) // टेंपरेरी नाम
+            sender: "User_" + Math.floor(Math.random() * 100) // टेंपरेरी आईडी
         });
         msgInput.value = "";
     }
 };
 
-// रीयल-टाइम में मैसेज प्राप्त करें
+sendBtn.addEventListener('click', sendMessage);
+
+// 'Enter' की दबाने पर मैसेज भेजें
+msgInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// नए मैसेज रीयल-टाइम में लोड करना
 onChildAdded(messagesRef, (data) => {
     const msg = data.val();
     const div = document.createElement('div');
-    div.classList.add('msg', 'msg-received'); // आप इसे sender के हिसाब से बदल सकते हैं
+    
+    // यहाँ 'msg-sent' या 'msg-received' क्लास सेट करें
+    div.classList.add('msg', 'msg-sent'); 
     div.innerText = msg.text;
-    messagesContainer.appendChild(div);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    chatWindow.appendChild(div);
+    
+    // ऑटो स्क्रॉल नीचे की तरफ
+    chatWindow.scrollTop = chatWindow.scrollHeight;
 });
-// Call Logic Elements
-const groupCallBtn = document.getElementById('group-call-btn');
-const callPopup = document.getElementById('call-notification');
-const acceptBtn = document.getElementById('accept-call');
-const rejectBtn = document.getElementById('reject-call');
-const attachBtn = document.getElementById('attach-btn');
-const mediaMenu = document.getElementById('media-menu');
 
-const callRef = ref(db, 'calls/currentCall');
+// --- 2. ग्रुप कॉल लॉजिक ---
 
-// जब कोई कॉल शुरू करे
-groupCallBtn.onclick = () => {
+// कॉल शुरू करना
+groupCallBtn.addEventListener('click', () => {
     set(callRef, {
-        status: "ringing",
-        caller: "Admin",
-        type: "group"
+        status: 'ringing',
+        caller: 'Admin',
+        time: Date.now()
     });
-    alert("कॉल शुरू हो रही है...");
-};
+    console.log("कॉल सिग्नल भेजा गया...");
+});
 
-// रीयल-टाइम कॉल नोटिफिकेशन सुनना
-onChildAdded(ref(db, 'calls'), (data) => {
-    const callData = data.val();
-    if(callData.status === "ringing") {
+// कॉल नोटिफिकेशन सुनना (सबके पास पॉपअप आएगा)
+onValue(callRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.status === 'ringing') {
         callPopup.classList.remove('hidden');
+    } else {
+        callPopup.classList.add('hidden');
     }
 });
 
-// बटन क्लिक्स
-acceptBtn.onclick = () => {
+// कॉल उठाना या काटना
+acceptBtn.addEventListener('click', () => {
+    alert("कॉल कनेक्ट हो रही है... (WebRTC की ज़रूरत होगी)");
     callPopup.classList.add('hidden');
-    console.log("कॉल से जुड़ रहे हैं...");
-    // यहाँ WebRTC का कोड जोड़ सकते हैं
-};
+});
 
-rejectBtn.onclick = () => {
+rejectBtn.addEventListener('click', () => {
+    set(callRef, null); // डेटाबेस से कॉल स्टेटस हटाना
     callPopup.classList.add('hidden');
-};
+});
 
-// अटैचमेंट मेनू खोलना/बंद करना
-attachBtn.onclick = () => {
-    mediaMenu.classList.toggle('hidden');
-};
-
-// वॉइस मैसेज (टेंपरेरी)
-document.getElementById('mic-btn').onclick = () => {
-    alert("रिकॉर्डिंग शुरू...");
-};
+// --- 3. यूटिलिटी ---
+console.log("P2K System Ready!");
