@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2K VIP - Pintu Nishad</title>
+    <style>
+        :root { --p: #800000; --g: #ffd700; --bg: #0b0d0f; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        header { background: #161b22; padding: 15px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--p); box-shadow: 0 4px 20px black; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); }
+        .msg { background: rgba(22, 27, 34, 0.9); padding: 12px; border-radius: 15px; max-width: 80%; border-left: 4px solid var(--p); animation: ghost 60s forwards; }
+        @keyframes ghost { 0% { opacity:1; } 100% { opacity:0; display:none; } }
+        .call-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        footer { padding: 15px; background: #161b22; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid var(--p); background: #010409; color: white; outline: none; }
+        .btn { background: var(--p); color: var(--g); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="color:var(--g); font-weight:bold;">P2K PRO</div>
+        <button onclick="set(ref(db,'calls/active'),true)" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">📞</button>
+    </header>
+    <div id="call-box" class="call-ui">
+        <h2 style="color:var(--g);">Incoming P2K Call...</h2>
+        <button onclick="set(ref(db,'calls/active'),null)" style="background:red; color:white; padding:10px 30px; border-radius:20px; border:none;">Reject</button>
+    </div>
+    <div id="chat-box"></div>
+    <footer>
+        <input type="text" id="m" placeholder="Ghost Mode On...">
+        <button class="btn" onclick="send()">➤</button>
+    </footer>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        const conf = { apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM", projectId: "galk-55f49", databaseURL: "https://galk-55f49-default-rtdb.firebaseio.com" };
+        const app = initializeApp(conf); const db = getDatabase(app);
+        window.send = () => { const i = document.getElementById('m'); if(i.value) { push(ref(db, 'messages'), { t: i.value }); i.value = ''; } };
+        onChildAdded(ref(db, 'messages'), (s) => {
+            const d = document.createElement('div'); d.className='msg'; d.innerText=s.val().t;
+            document.getElementById('chat-box').appendChild(d);
+            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+        });
+        onValue(ref(db, 'calls/active'), (s) => { document.getElementById('call-box').style.display = s.val() ? 'flex' : 'none'; });
+    </script>
+</body>
+</html>
