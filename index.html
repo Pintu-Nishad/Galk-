@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2K ULTIMATE - PINTU NISHAD</title>
+    <style>
+        :root { --p: #800000; --g: #ffd700; --bg: #0b0d0f; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        header { background: #161b22; padding: 15px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--p); box-shadow: 0 4px 20px black; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); }
+        /* Ghost Mode Feature */
+        .msg { background: rgba(22, 27, 34, 0.95); padding: 12px; border-radius: 15px; max-width: 80%; border-left: 5px solid var(--p); animation: ghost 60s forwards; position: relative; }
+        @keyframes ghost { 0% { opacity:1; transform: scale(1); } 100% { opacity:0; display:none; } }
+        /* Call UI Feature */
+        .call-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
+        footer { padding: 15px; background: #161b22; display: flex; gap: 10px; border-top: 1px solid #30363d; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid var(--p); background: #010409; color: white; outline: none; }
+        .btn-send { background: var(--p); color: var(--g); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="color:var(--g); font-weight:bold; font-size:1.2rem;">P2K SECURE PRO</div>
+        <button onclick="window.startCall()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">🤙</button>
+    </header>
+    <div id="call-box" class="call-ui">
+        <h2 style="color:var(--g); animation: pulse 1s infinite;">🚨 INCOMING CALL</h2>
+        <p>Pintu is calling you...</p>
+        <button onclick="window.endCall()" style="background:red; color:white; padding:15px 40px; border-radius:30px; border:none; font-weight:bold; cursor:pointer;">REJECT</button>
+    </div>
+    <div id="chat-box"></div>
+    <footer>
+        <input type="text" id="m" placeholder="Ghost Mode On (1 Min)...">
+        <button class="btn-send" onclick="window.sendMsg()">➤</button>
+    </footer>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        const conf = { apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM", projectId: "galk-55f49", databaseURL: "https://galk-55f49-default-rtdb.firebaseio.com" };
+        const app = initializeApp(conf); const db = getDatabase(app);
+        window.sendMsg = () => { const i = document.getElementById('m'); if(i.value) { push(ref(db, 'messages'), { t: i.value, ts: Date.now() }); i.value = ''; } };
+        onChildAdded(ref(db, 'messages'), (s) => {
+            const d = document.createElement('div'); d.className='msg';
+            d.innerHTML = '<small style="color:var(--g)">@Secure</small><br>' + s.val().t;
+            document.getElementById('chat-box').appendChild(d);
+            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+        });
+        window.startCall = () => set(ref(db, 'calls/active'), true);
+        window.endCall = () => set(ref(db, 'calls/active'), null);
+        onValue(ref(db, 'calls/active'), (s) => { document.getElementById('call-box').style.display = s.val() ? 'flex' : 'none'; });
+    </script>
+</body>
+</html>
