@@ -3,125 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>P2K ULTIMATE - PINTU NISHAD</title>
+    <title>P2K SECURE - V3 PRO</title>
     <style>
-        :root { --p: #800000; --g: #ffd700; --bg: #0b0d0f; --card: #161b22; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --p: #800000; --g: #ffd700; --bg: #0b0d0f; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: white; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* 1-5: Premium Header & Glowing Effects */
-        header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--p); box-shadow: 0 4px 15px black; z-index: 10; }
-        .logo { color: var(--g); font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px var(--p); }
-        .status-dot { width: 8px; height: 8px; background: #238636; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px #238636; }
+        /* Login Screen */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: #161b22; padding: 30px; border-radius: 20px; border: 2px solid var(--p); width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 30px rgba(128,0,0,0.6); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid var(--p); background: #000; color: white; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--g); box-shadow: 0 0 10px var(--g); }
+        .btn { background: var(--p); color: var(--g); border: none; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
 
-        /* 6-10: Chat Box & Ghost Mode Animation */
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); padding-bottom: 100px; }
-        .msg { background: rgba(128, 0, 0, 0.15); padding: 12px; border-radius: 15px 15px 15px 2px; max-width: 80%; border-left: 4px solid var(--p); animation: ghost 60s forwards; position: relative; word-wrap: break-word; box-shadow: 3px 3px 10px rgba(0,0,0,0.3); }
-        @keyframes ghost { 0% { opacity:1; transform: translateY(0); } 90% { opacity:0.5; } 100% { opacity:0; transform: translateY(-20px); display:none; } }
-        
-        /* 11-15: Call UI & Pulse Animation */
-        .call-ui { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .call-card { background: var(--card); padding: 40px; border-radius: 30px; border: 2px solid var(--g); text-align: center; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(128,0,0,0.7); } 70% { box-shadow: 0 0 0 20px rgba(128,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(128,0,0,0); } }
+        /* Master Admin Panel */
+        #admin-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .admin-card { background: #161b22; padding: 25px; border-radius: 20px; border: 2px solid var(--g); width: 90%; text-align: center; }
 
-        /* 16-20: Input Area & Secret Admin Trigger */
-        footer { position: fixed; bottom: 0; width: 100%; background: var(--card); padding: 12px; display: flex; gap: 10px; border-top: 1px solid #333; z-index: 100; align-items: center; }
-        input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--p); background: #010409; color: white; outline: none; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--g); box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-        .btn-send { background: var(--p); color: var(--g); border: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        /* Main UI */
+        header { background: #161b22; padding: 15px; display: flex; justify-content: space-between; border-bottom: 2px solid var(--p); box-shadow: 0 4px 10px black; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); display: flex; flex-direction: column; gap: 10px; padding-bottom: 90px; }
+        .msg { background: rgba(128, 0, 0, 0.2); padding: 12px; border-radius: 15px 15px 15px 2px; max-width: 85%; border-left: 4px solid var(--p); align-self: flex-start; animation: slide 0.3s ease; }
+        @keyframes slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .msg b { color: var(--g); font-size: 0.75rem; display: block; margin-bottom: 4px; }
         
-        /* 21-25: Admin Panel & Features */
-        #admin-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--g); display: none; z-index: 1100; width: 80%; text-align: center; }
-        .admin-btn { background: var(--p); color: white; border: none; padding: 12px; margin: 5px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
-        
-        /* 26-29: Scrollbar & Selection */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--p); border-radius: 10px; }
-        ::selection { background: var(--p); color: var(--g); }
+        /* Call UI */
+        #call-ui { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 4000; }
+        .mute-btn { background: var(--g); color: black; border: none; padding: 10px 25px; border-radius: 25px; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
+
+        footer { position: fixed; bottom: 0; width: 100%; background: #161b22; padding: 12px; display: flex; gap: 10px; border-top: 1px solid #333; }
+        #m { flex: 1; margin: 0; border-radius: 25px; padding-left: 20px; }
+        .send { background: var(--p); color: var(--g); border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">P2K SECURE PRO <br><small style="color:white; font-weight:normal;"><span class="status-dot"></span><span id="room-display">Global</span></small></div>
-        <button onclick="window.startCall()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; filter: drop-shadow(0 0 5px var(--g));">🤙</button>
-    </header>
-
-    <div id="call-box" class="call-ui">
-        <div class="call-card">
-            <h1 style="color:var(--g);">🚨 P2K GROUP CALL</h1>
-            <p>Pintu Nishad is inviting you...</p>
-            <button onclick="window.endCall()" style="background:red; color:white; padding:15px 40px; border-radius:30px; border:none; font-weight:bold; cursor:pointer; margin-top:20px;">REJECT</button>
+    <div id="auth-screen">
+        <div class="card">
+            <h2 style="color:var(--g)">P2K PORTAL</h2>
+            <input type="text" id="u-in" placeholder="Username">
+            <input type="password" id="p-in" placeholder="Room/Master Password">
+            <button class="btn" onclick="auth()">ACCESS GRANTED</button>
         </div>
     </div>
 
     <div id="admin-panel">
-        <h3 style="color:var(--g);">🔐 ADMIN CONTROL</h3>
-        <button class="admin-btn" onclick="window.clearChat()">🧹 Clear All Messages</button>
-        <button class="admin-btn" style="background:#444;" onclick="document.getElementById('admin-panel').style.display='none'">Close</button>
+        <div class="admin-card">
+            <h1 style="color:var(--g)">⚡ MASTER CONTROL</h1>
+            <input type="text" id="room-wipe" placeholder="Room Name to Wipe" style="width:100%;">
+            <button class="btn" onclick="doWipe()">WIPE ROOM DATABASE</button>
+            <button class="btn" style="background:#444; margin-top:10px;" onclick="location.reload()">LOGOUT</button>
+        </div>
+    </div>
+
+    <header>
+        <div id="r-tag" style="color:var(--g); font-weight:bold; letter-spacing:1px;">P2K SECURE</div>
+        <button onclick="window.startCall()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; filter: drop-shadow(0 0 5px var(--g));">🤙</button>
+    </header>
+
+    <div id="call-ui">
+        <h2 style="color:red; letter-spacing:2px;">SECURE LINE ACTIVE</h2>
+        <button class="mute-btn" id="mt-btn" onclick="window.mute()">MUTE 🎤</button>
+        <button onclick="window.endCall()" style="background:red; color:white; border:none; padding:12px 35px; border-radius:30px; font-weight:bold;">HANG UP</button>
     </div>
 
     <div id="chat-box"></div>
 
     <footer>
-        <div onclick="window.askAdmin()" style="cursor:pointer; font-size:1.2rem; padding:0 5px;">🔑</div>
-        <input type="text" id="m" placeholder="Ghost Mode On (1 Min)..." onkeypress="if(event.key==='Enter') window.sendMsg()">
-        <button class="btn-send" onclick="window.sendMsg()">➤</button>
+        <input type="text" id="m" placeholder="Secure Message..." onkeypress="if(event.key==='Enter') send()">
+        <button class="send" onclick="send()">➤</button>
     </footer>
 
-    <audio id="pop-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
+    <audio id="pop" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         
-        const conf = { apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM", projectId: "galk-55f49", databaseURL: "https://galk-55f49-default-rtdb.firebaseio.com" };
-        const app = initializeApp(conf); const db = getDatabase(app);
+        const config = { apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM", projectId: "galk-55f49", databaseURL: "https://galk-55f49-default-rtdb.firebaseio.com" };
+        const app = initializeApp(config); const db = getDatabase(app);
+        
+        let uName = ""; let roomID = ""; let isMuted = false;
 
-        // Feature: Dynamic Room System
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomID = urlParams.get('room') || 'Global-Chat';
-        document.getElementById('room-display').innerText = roomID;
-        const roomRef = ref(db, 'rooms/' + roomID);
+        window.auth = () => {
+            const n = document.getElementById('u-in').value;
+            const p = document.getElementById('p-in').value;
+            if(!n || !p) return;
 
-        // Feature: Sound & Message Sending
-        window.sendMsg = () => {
-            const i = document.getElementById('m');
-            if(i.value.trim()) { 
-                push(roomRef, { t: i.value, ts: Date.now(), user: 'Pintu' }); 
-                i.value = ''; 
+            // Admin Logic
+            if(n === "Pintu" && p === "1466586") {
+                document.getElementById('admin-panel').style.display = 'flex';
+                return;
             }
+
+            uName = n; roomID = p;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('r-tag').innerText = "ROOM: " + p;
+            
+            const rRef = ref(db, 'rooms/' + roomID);
+            onChildAdded(rRef, (s) => {
+                const d = document.createElement('div'); d.className='msg';
+                d.innerHTML = `<b>@${s.val().u} • ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</b>${s.val().t}`;
+                const box = document.getElementById('chat-box');
+                box.appendChild(d);
+                box.scrollTop = box.scrollHeight;
+                document.getElementById('pop').play().catch(()=>{});
+            });
+
+            window.send = () => {
+                const i = document.getElementById('m');
+                if(i.value.trim()) { push(rRef, { u: uName, t: i.value }); i.value = ''; }
+            };
         };
 
-        // Feature: Real-time Listener & Pop Sound
-        onChildAdded(roomRef, (s) => {
-            const d = document.createElement('div'); d.className='msg';
-            d.innerHTML = `<small style="color:var(--g); font-size:0.7rem;">@Secure • ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small><br>${s.val().t}`;
-            const box = document.getElementById('chat-box');
-            box.appendChild(d);
-            box.scrollTop = box.scrollHeight;
-            document.getElementById('pop-sound').play().catch(() => {});
-        });
+        window.doWipe = () => {
+            const t = document.getElementById('room-wipe').value;
+            if(t && confirm("Uda du sara data?")) { remove(ref(db, 'rooms/' + t)); alert("Wiped!"); }
+        };
 
-        // Feature: Group Calling
         window.startCall = () => set(ref(db, 'calls/active'), true);
         window.endCall = () => set(ref(db, 'calls/active'), null);
-        onValue(ref(db, 'calls/active'), (s) => {
-            document.getElementById('call-box').style.display = s.val() ? 'flex' : 'none';
-        });
-
-        // Feature: Secret Admin Panel
-        window.askAdmin = () => {
-            let p = prompt("Admin PIN डालें:");
-            if(p === "1234") document.getElementById('admin-panel').style.display='block';
-            else alert("Galat PIN!");
-        };
-        window.clearChat = () => {
-            if(confirm("Sare messages uda du?")) { remove(roomRef); location.reload(); }
-        };
-
-        // Feature: Anti-Copy & Security
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        onValue(ref(db, 'calls/active'), (s) => { document.getElementById('call-ui').style.display = s.val() ? 'flex' : 'none'; });
+        window.mute = () => { isMuted = !isMuted; document.getElementById('mt-btn').innerText = isMuted ? "UNMUTE 🔇" : "MUTE 🎤"; };
     </script>
 </body>
 </html>
