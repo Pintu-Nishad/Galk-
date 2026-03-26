@@ -3,114 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pintu Private 4K AI</title>
+    <title>Pintu AI - Quality Enhancer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #010409; color: #c9d1d9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; overflow: hidden; }
-        .glass-panel { background: rgba(13, 17, 23, 0.95); border: 1px solid #30363d; backdrop-filter: blur(10px); }
-        .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #238636, #2ea043); transition: width 0.3s; box-shadow: 0 0 15px #238636; }
-        .shimmer { animation: shimmer 2s infinite linear; background: linear-gradient(to right, #30363d 4%, #484f58 25%, #30363d 36%); background-size: 1000px 100%; }
-        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; user-select: none; overflow: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
+        .bar-loading { width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #2dd4bf); transition: width 0.5s ease; border-radius: 20px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .animate-status { animation: pulse-fast 1.5s infinite; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4" oncontextmenu="return false;">
+<body class="min-h-screen flex items-center justify-center p-6" oncontextmenu="return false;">
 
-    <div class="max-w-md w-full glass-panel p-10 rounded-[2rem] shadow-2xl relative">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-black tracking-tighter text-white">PINTU <span class="text-green-500">4K</span> AI</h1>
-            <div class="h-1 w-12 bg-green-500 mx-auto mt-2 rounded-full"></div>
+    <div class="max-w-md w-full glass p-10 rounded-[3rem] shadow-2xl text-center border border-slate-800">
+        <h1 class="text-3xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent mb-2 uppercase tracking-tighter">PINTU AI VISION</h1>
+        <p class="text-[10px] text-slate-500 tracking-[0.4em] mb-10">PRESERVE ORIGINAL • ENHANCE QUALITY</p>
+
+        <div id="step1">
+            <label class="block w-full py-20 border-2 border-dashed border-slate-700 rounded-[2.5rem] cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-all group">
+                <div class="mb-4 flex justify-center text-slate-600 group-hover:text-blue-500">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="text-slate-400 group-hover:text-slate-200 font-bold uppercase text-xs tracking-widest">फोटो चुनें</span>
+                <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="previewImage(this)">
+            </label>
         </div>
 
-        <div id="step-1" class="space-y-6">
-            <div class="p-12 border-2 border-dashed border-slate-700 rounded-3xl hover:border-green-500 hover:bg-green-500/5 transition-all cursor-pointer text-center group" onclick="document.getElementById('imgInput').click()">
-                <svg class="w-12 h-12 mx-auto mb-4 text-slate-500 group-hover:text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                <p class="text-sm font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-widest">Select Image for 4K</p>
-                <input type="file" id="imgInput" class="hidden" accept="image/*" onchange="startProcess(this)">
-            </div>
+        <div id="step2" class="hidden space-y-6">
+            <img id="imgPreview" src="" class="w-full rounded-2xl border border-slate-700 max-h-60 object-contain mx-auto shadow-lg">
+            <button onclick="processAI()" id="enhanceBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold tracking-widest shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+                ENHANCE NOW
+            </button>
         </div>
 
-        <div id="step-2" class="hidden py-8 space-y-6 text-center">
+        <div id="step3" class="hidden py-8 space-y-6">
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div id="progressBar" class="bar-fill"></div>
+                <div id="pLine" class="bar-loading"></div>
             </div>
-            <div class="flex justify-between text-[10px] font-mono text-slate-500 uppercase">
-                <span id="statusTxt">Booting AI...</span>
-                <span id="timerTxt">00:00:00</span>
+            <div class="flex justify-between text-[11px] font-mono text-slate-500">
+                <span id="stateTxt">ANALYZING...</span>
+                <span id="timerBox">00:00:00</span>
             </div>
-            <div class="shimmer h-4 w-full rounded-md mt-4"></div>
+            <p class="animate-status text-blue-400 text-xs font-bold tracking-widest uppercase">Improving Clarity & Light</p>
         </div>
 
-        <div id="step-3" class="hidden space-y-6">
-            <img id="finalPhoto" src="" class="w-full rounded-xl border border-slate-700 shadow-2xl">
-            <a id="downloadLink" download="Pintu_4K_Enhanced.png" href="#" class="block w-full bg-green-600 hover:bg-green-500 text-white text-center py-4 rounded-xl font-bold transition shadow-lg active:scale-95">
-                DOWNLOAD 4K PHOTO
-            </a>
-            <button onclick="location.reload()" class="w-full text-slate-600 text-[10px] uppercase hover:text-white transition">Upload Another</button>
+        <div id="step4" class="hidden space-y-6">
+            <div class="bg-slate-900/50 p-6 rounded-3xl border border-slate-800 text-left">
+                <p id="aiOutput" class="text-sm text-slate-300 leading-relaxed font-medium italic"></p>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold hover:bg-slate-700 transition">BACK TO HOME</button>
         </div>
     </div>
 
     <script>
-        // Security Lock
+        // Security: Block F12 & Right Click
         document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false; };
+        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false; };
 
-        const MY_KEY = "3066d2047bcdcd26d069882359051aa10eaeb6e488316dc4430e24eefc6a52e51754827f6a5a8e84b0225c07eec468cc";
+        const API_KEY = "AIzaSyBkNKfd9JPOlZinogTXC-meveIRiqtMO80";
 
-        async function startProcess(input) {
-            if (!input.files[0]) return;
+        // तेरा फिक्स प्रॉम्प्ट यहाँ जुड़ गया है
+        const FINAL_PROMPT = "कृपया अपलोड की गई तस्वीर में किसी भी तरह का बदलाव न करें, सिर्फ उसकी क्वालिटी को बढ़ाएं। ज़्यादा से ज़्यादा स्पष्टता और प्रकाश बनाए रखें, लेकिन फोटो का मूल रूप और कंटेंट वही रखें।";
 
-            // UI Transitions
-            document.getElementById('step-1').classList.add('hidden');
-            document.getElementById('step-2').classList.remove('hidden');
+        let currentFile = null;
 
-            const bar = document.getElementById('progressBar');
-            const status = document.getElementById('statusTxt');
-            const clock = document.getElementById('timerTxt');
-            const steps = ["SCANNING...", "UPSCALING...", "REFINING...", "POLISHING..."];
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                currentFile = input.files[0];
+                const r = new FileReader();
+                r.onload = e => {
+                    document.getElementById('imgPreview').src = e.target.result;
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                };
+                r.readAsDataURL(currentFile);
+            }
+        }
+
+        async function processAI() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+
+            const pLine = document.getElementById('pLine');
+            const stateTxt = document.getElementById('stateTxt');
+            const timerBox = document.getElementById('timerBox');
+            const steps = ["SCANNING...", "ENHANCING LIGHT...", "CLARIFYING...", "POLISHING..."];
             
-            // Timer Logic
+            // Live Timer
             let start = Date.now();
-            let timerInterval = setInterval(() => {
-                let diff = Date.now() - start;
-                let ms = Math.floor((diff % 1000) / 10);
-                let sec = Math.floor((diff / 1000) % 60);
-                clock.innerText = `00:${sec < 10 ? '0'+sec : sec}:${ms < 10 ? '0'+ms : ms}`;
+            let clock = setInterval(() => {
+                let d = Date.now() - start;
+                timerBox.innerText = `00:${Math.floor((d/1000)%60).toString().padStart(2,'0')}:${Math.floor((d%1000)/10).toString().padStart(2,'0')}`;
             }, 50);
 
-            // Fake Progress Simulation
-            for(let i=0; i<steps.length; i++){
-                status.innerText = steps[i];
-                bar.style.width = ((i+1)*25) + "%";
-                await new Promise(r => setTimeout(r, 1500)); 
+            // Animation Loop
+            for(let i=0; i<steps.length; i++) {
+                stateTxt.innerText = steps[i];
+                pLine.style.width = ((i+1)*25) + "%";
+                await new Promise(r => setTimeout(r, 1200));
             }
 
-            // Real API Execution
-            const formData = new FormData();
-            formData.append('image_file', input.files[0]);
-            formData.append('target_width', '3840'); // 4K Target
+            // Convert to Base64
+            const base64 = await new Promise(res => {
+                const r = new FileReader();
+                r.onloadend = () => res(r.result.split(',')[1]);
+                r.readAsDataURL(currentFile);
+            });
 
             try {
-                const response = await fetch('https://clipdrop-api.co/image-upscaling/v1/upscale', {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
-                    headers: { 'x-api-key': MY_KEY },
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: FINAL_PROMPT },
+                                { inline_data: { mime_type: currentFile.type, data: base64 } }
+                            ]
+                        }]
+                    })
                 });
 
-                if (response.status === 402) throw new Error("Credits Finished!");
-                if (!response.ok) throw new Error("API Connection Failed");
+                const data = await response.json();
+                const aiResponseText = data.candidates[0].content.parts[0].text;
 
-                const blob = await response.blob();
-                const photoUrl = URL.createObjectURL(blob);
-
-                clearInterval(timerInterval);
-                document.getElementById('step-2').classList.add('hidden');
-                document.getElementById('step-3').classList.remove('hidden');
-                document.getElementById('finalPhoto').src = photoUrl;
-                document.getElementById('downloadLink').href = photoUrl;
+                clearInterval(clock);
+                document.getElementById('step3').classList.add('hidden');
+                document.getElementById('step4').classList.remove('hidden');
+                document.getElementById('aiOutput').innerText = aiResponseText;
 
             } catch (err) {
-                clearInterval(timerInterval);
-                alert("Error: " + err.message + "\nशायद इंटरनेट या API की (Key) में दिक्कत है।");
+                alert("Error! Check API Key or Internet.");
                 location.reload();
             }
         }
