@@ -3,77 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photo Link Downloader</title>
+    <title>Pintu Photo Downloader</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-10 font-sans">
+<body class="text-white min-h-screen flex flex-col items-center justify-center p-6">
 
-    <div class="max-w-md w-full bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-700">
-        <h1 class="text-2xl font-bold text-blue-400 mb-2">Image Link Loader</h1>
-        <p class="text-gray-400 mb-6 text-sm">फोटो का Direct URL नीचे पेस्ट करें:</p>
+    <div class="max-w-md w-full glass p-8 rounded-3xl shadow-2xl">
+        <h1 class="text-3xl font-extrabold text-blue-400 mb-2 text-center">Photo Loader</h1>
+        <p class="text-gray-400 mb-8 text-center text-sm">फोटो का लिंक नीचे पेस्ट करें</p>
 
         <input type="text" id="linkInput" 
-            class="w-full p-4 rounded-xl bg-gray-900 border border-gray-600 text-blue-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+            class="w-full p-4 rounded-2xl bg-gray-900 border border-gray-700 text-blue-300 focus:ring-2 focus:ring-blue-500 outline-none mb-6 shadow-inner"
             placeholder="https://example.com/photo.jpg">
 
-        <button onclick="loadImageFromLink()" 
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-300 shadow-lg mb-8">
+        <button onclick="loadImage()" 
+            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl transition duration-300 transform active:scale-95 shadow-lg mb-8">
             फोटो लोड करें
         </button>
 
-        <div id="resultArea" class="hidden border-t border-gray-700 pt-6">
-            <div class="relative group">
-                <img id="outputImage" src="" alt="Loaded" class="w-full rounded-lg shadow-md mb-6 border border-gray-600">
+        <div id="resultArea" class="hidden space-y-6">
+            <div class="relative rounded-2xl overflow-hidden border border-gray-600 shadow-lg">
+                <img id="outputImage" src="" alt="Loaded" class="w-full object-cover">
             </div>
             
-            <button onclick="downloadImage()" 
-               class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition shadow-lg">
-               HD में Save करें
+            <button onclick="forceDownload()" 
+               class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 rounded-2xl transition transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
+               <span>HD में Save करें</span>
             </button>
         </div>
     </div>
 
     <script>
-        async function loadImageFromLink() {
+        // फोटो लोड करने का फंक्शन
+        function loadImage() {
             const url = document.getElementById('linkInput').value.trim();
-            const resultArea = document.getElementById('resultArea');
             const outputImage = document.getElementById('outputImage');
+            const resultArea = document.getElementById('resultArea');
 
-            if (url === "") {
-                alert("भाई, पहले लिंक तो डालो!");
+            if (!url) {
+                alert("भाई, लिंक तो डालो!");
                 return;
             }
 
-            // फोटो दिखाना
+            // CORS और लोडिंग सेटअप
+            outputImage.crossOrigin = "anonymous"; 
             outputImage.src = url;
-            resultArea.classList.remove('hidden');
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+
+            outputImage.onload = () => {
+                resultArea.classList.remove('hidden');
+                resultArea.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            outputImage.onerror = () => {
+                alert("यह लिंक काम नहीं कर रहा या प्राइवेट है। दूसरा ट्राई करें!");
+            };
         }
 
-        // ओरिजिनल क्वालिटी डाउनलोड करने के लिए खास फंक्शन
-        async function downloadImage() {
+        // डाउनलोड करने का सबसे पक्का तरीका (Blob Method)
+        async function forceDownload() {
             const imageUrl = document.getElementById('outputImage').src;
-            
             try {
-                // फोटो को बाइनरी (Blob) में फेच करना ताकि ओरिजिनल क्वालिटी मिले
                 const response = await fetch(imageUrl);
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "Pintu_Original_HD.jpg";
-                document.body.appendChild(a);
-                a.click();
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = "Pintu_HD_Photo.jpg";
+                document.body.appendChild(link);
+                link.click();
+                
+                // सफाई करना
+                document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } catch (error) {
-                // अगर CORS की वजह से फेच न हो, तो सीधा डाउनलोड ट्राई करें
-                const a = document.createElement('a');
-                a.href = imageUrl;
-                a.download = "Pintu_Photo.jpg";
-                a.target = "_blank";
-                a.click();
+            } catch (err) {
+                // अगर Fetch फेल हो तो सीधा ओपन कर देना
+                window.open(imageUrl, '_blank');
             }
         }
     </script>
