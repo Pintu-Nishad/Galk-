@@ -6,84 +6,69 @@
     <title>Pintu Photo Downloader</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-    </script>
+        body { background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); }
+    </style>
 </head>
-<body class="text-white min-h-screen flex flex-col items-center justify-center p-6">
+<body class="text-white min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full glass p-8 rounded-3xl shadow-2xl">
-        <h1 class="text-3xl font-extrabold text-blue-400 mb-2 text-center">Photo Loader</h1>
-        <p class="text-gray-400 mb-8 text-center text-sm">फोटो का लिंक नीचे पेस्ट करें</p>
+    <div class="max-w-md w-full bg-slate-800/50 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/10">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2 text-center">Photo Loader</h1>
+        <p class="text-slate-400 mb-8 text-center text-sm">लिंक पेस्ट करें और जादू देखें</p>
 
         <input type="text" id="linkInput" 
-            class="w-full p-4 rounded-2xl bg-gray-900 border border-gray-700 text-blue-300 focus:ring-2 focus:ring-blue-500 outline-none mb-6 shadow-inner"
-            placeholder="https://example.com/photo.jpg">
+            class="w-full p-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-blue-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+            placeholder="https://...">
 
         <button onclick="loadImage()" 
-            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl transition duration-300 transform active:scale-95 shadow-lg mb-8">
+            class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-lg mb-6">
             फोटो लोड करें
         </button>
 
-        <div id="resultArea" class="hidden space-y-6">
-            <div class="relative rounded-2xl overflow-hidden border border-gray-600 shadow-lg">
-                <img id="outputImage" src="" alt="Loaded" class="w-full object-cover">
-            </div>
+        <div id="resultArea" class="hidden animate-fade-in">
+            <img id="outputImage" src="" alt="Loaded" class="w-full rounded-2xl border border-slate-700 shadow-md mb-4">
             
-            <button onclick="forceDownload()" 
-               class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 rounded-2xl transition transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
-               <span>HD में Save करें</span>
+            <button id="downloadBtn" onclick="forceDownload()" 
+               class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95">
+               HD में डाउनलोड करें
             </button>
         </div>
     </div>
 
     <script>
-        // फोटो लोड करने का फंक्शन
         function loadImage() {
-            const url = document.getElementById('linkInput').value.trim();
-            const outputImage = document.getElementById('outputImage');
-            const resultArea = document.getElementById('resultArea');
+            const input = document.getElementById('linkInput').value.trim();
+            const img = document.getElementById('outputImage');
+            const result = document.getElementById('resultArea');
 
-            if (!url) {
-                alert("भाई, लिंक तो डालो!");
-                return;
-            }
+            if (!input) return alert("लिंक कहाँ है भाई?");
 
-            // CORS और लोडिंग सेटअप
-            outputImage.crossOrigin = "anonymous"; 
-            outputImage.src = url;
+            // CORS Proxy का इस्तेमाल ताकि 'Not Found' या खाली न आए
+            const proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(input.replace(/^https?:\/\//, ''));
+            
+            img.src = proxyUrl;
 
-            outputImage.onload = () => {
-                resultArea.classList.remove('hidden');
-                resultArea.scrollIntoView({ behavior: 'smooth' });
+            img.onload = () => {
+                result.classList.remove('hidden');
             };
 
-            outputImage.onerror = () => {
-                alert("यह लिंक काम नहीं कर रहा या प्राइवेट है। दूसरा ट्राई करें!");
+            img.onerror = () => {
+                alert("यह फोटो लोड नहीं हो रही। कृपया दूसरा लिंक ट्राई करें!");
             };
         }
 
-        // डाउनलोड करने का सबसे पक्का तरीका (Blob Method)
         async function forceDownload() {
-            const imageUrl = document.getElementById('outputImage').src;
-            try {
-                const response = await fetch(imageUrl);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = "Pintu_HD_Photo.jpg";
-                document.body.appendChild(link);
-                link.click();
-                
-                // सफाई करना
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            } catch (err) {
-                // अगर Fetch फेल हो तो सीधा ओपन कर देना
-                window.open(imageUrl, '_blank');
-            }
+            const img = document.getElementById('outputImage');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+            
+            const link = document.createElement('a');
+            link.download = "Pintu_8K_Photo.jpg";
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.click();
         }
     </script>
 </body>
