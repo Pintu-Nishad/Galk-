@@ -1,91 +1,167 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Advanced Chat + Call</title>
-<style>
-body{margin:0;font-family:sans-serif;background:#0f172a;color:white}
-#app{display:flex;flex-direction:column;height:100vh}
-header{background:#1e293b;padding:10px;display:flex;justify-content:space-between;align-items:center}
-#messages{flex:1;overflow:auto;padding:10px}
-.msg{background:#334155;margin:5px;padding:8px;border-radius:8px}
-.join{color:lightgreen}
-.left{color:red}
-#inputBox{display:flex;padding:10px;background:#1e293b}
-input{flex:1;padding:10px;border:none;border-radius:5px}
-button{margin-left:5px;padding:10px;border:none;border-radius:5px;background:#22c55e;color:white}
-#callBox{position:fixed;bottom:10px;right:10px;width:200px;height:150px;background:black;border-radius:10px;display:none}
-</style>
+    <meta charset="UTF-8">
+    <title>P2K Pro | User-Powered AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" onload="initClient()" async defer></script>
 </head>
-<body>
-<div id="app">
-<header>
-<span id="roomTitle">Room</span>
-<button onclick="startCall()">📞</button>
-</header><div id="messages"></div><div id="inputBox">
-<input id="msg" placeholder="Type message">
-<button onclick="sendMsg()">Send</button>
-</div>
-</div><div id="callBox"></div><script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<body class="bg-[#050505] text-white min-h-screen font-sans p-6">
 
-const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "galk-55f49.firebaseapp.com",
-  projectId: "galk-55f49"
-};
+    <div id="loginSection" class="h-[80vh] flex flex-col items-center justify-center text-center">
+        <h1 class="text-6xl font-black mb-4 italic text-cyan-500">P2K.AI</h1>
+        <p class="text-gray-400 mb-8 text-lg">अपने Google अकाउंट से लॉगिन करें और Gemini AI का उपयोग करें</p>
+        <button onclick="login()" class="bg-white text-black px-10 py-4 rounded-full font-black text-xl hover:bg-cyan-500 transition shadow-2xl">
+            GOOGLE से लॉगिन करें
+        </button>
+    </div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    <div id="mainApp" class="hidden max-w-5xl mx-auto">
+        <header class="flex justify-between items-center mb-12 border-b border-white/10 pb-6">
+            <span class="text-3xl font-black italic">P2K <span class="text-cyan-500">ULTRA</span></span>
+            <div id="userInfo" class="flex items-center gap-4">
+                <span id="uName" class="font-bold"></span>
+                <img id="uImg" class="w-12 h-12 rounded-full border-2 border-cyan-500">
+            </div>
+        </header>
 
-let room = prompt("Room ID");
-let user = prompt("Your Name");
+        <div class="grid md:grid-cols-2 gap-10">
+            <div class="bg-white/5 p-8 rounded-[40px] border border-white/10 flex flex-col items-center justify-center min-h-[400px]">
+                <input type="file" id="imgInput" class="hidden" accept="image/*">
+                <label for="imgInput" id="uploadLabel" class="cursor-pointer text-center">
+                    <div class="w-20 h-20 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <p class="text-xl font-bold">फोटो चुनें</p>
+                </label>
+                <img id="preview" class="hidden w-full h-full object-contain rounded-2xl">
+            </div>
 
-const msgRef = collection(db, "rooms", room, "messages");
+            <div class="space-y-6">
+                <h3 class="text-2xl font-bold italic">क्वालिटी और प्रॉम्प्ट्स</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="process('hd')" class="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-blue-600 font-bold transition">HD</button>
+                    <button onclick="process('4k')" class="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-cyan-600 font-bold transition">4K</button>
+                    <button onclick="process('8k')" class="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-purple-600 font-bold transition">8K</button>
+                    <button onclick="process('auto')" class="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-emerald-600 font-bold transition">AUTO</button>
+                </div>
+                
+                <div id="loader" class="hidden text-center text-cyan-400 animate-pulse font-bold p-4">
+                    Gemini आपके अकाउंट से प्रोसेस कर रहा है...
+                </div>
 
-// Join message
-addDoc(msgRef,{type:"join",user,time:Date.now()});
+                <div id="result" class="hidden p-6 bg-white/5 rounded-2xl border border-cyan-500/50">
+                    <p class="text-sm text-gray-400 mb-4 italic">Gemini Analysis Complete!</p>
+                    <button id="dlBtn" class="w-full bg-white text-black py-4 rounded-xl font-black text-lg hover:bg-cyan-500 transition">DOWNLOAD ENHANCED PHOTO</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-// Listen messages
-onSnapshot(msgRef,(snap)=>{
-let html="";
-snap.forEach(doc=>{
-let d = doc.data();
-if(d.type=="join") html+=`<div class='join'>${d.user} joined</div>`;
-else if(d.type=="left") html+=`<div class='left'>${d.user} left</div>`;
-else html+=`<div class='msg'><b>${d.user}:</b> ${d.text}</div>`;
+    <script>
+        let client;
+        let accessToken = null;
+        let base64Img = "";
 
-// Auto delete after 1 min
-if(Date.now()-d.time > 60000){ deleteDoc(doc.ref); }
-});
+        // प्रॉम्प्ट्स जो आपने दिए हैं
+        const prompts = {
+            hd: "कृपया अपलोड की गई तस्वीर में किसी भी तरह का बदलाव न करें, सिर्फ उसकी क्वालिटी को बढ़ाएं। ज़्यादा से ज़्यादा स्पष्टता और प्रकाश बनाए रखें, लेकिन फोटो का मूल रूप और कंटेंट वही रखें।",
+            4k: "Enhance the uploaded image to ultra high resolution (4K). Do not alter, modify, or add any elements. Preserve the original composition, colors, lighting, and details exactly as they are. Only improve sharpness, clarity, and resolution. Remove noise and enhance fine details naturally while keeping the image realistic and unchanged.",
+            8k: "Enhance the uploaded image to ultra high resolution (8K). Do not alter, modify, or add any elements. Strictly preserve the original composition, colors, lighting, textures, and all details exactly as they are. Only improve resolution, sharpness, and clarity to 8K quality.",
+            auto: "Enhance the uploaded image to the highest possible quality (up to 8K). Improve brightness, exposure, and lighting balance naturally. Increase sharpness, clarity, and fine details while reducing noise and blur. Correct colors, contrast, and white balance for a realistic and vibrant look."
+        };
 
-document.getElementById('messages').innerHTML=html;
-});
+        function initClient() {
+            client = google.accounts.oauth2.initTokenClient({
+                client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // अपनी ID यहाँ डालें
+                scope: 'https://www.googleapis.com/auth/generative-language.retrieval https://www.googleapis.com/auth/userinfo.profile',
+                callback: (tokenResponse) => {
+                    accessToken = tokenResponse.access_token;
+                    showApp();
+                },
+            });
+        }
 
-window.sendMsg = function(){
-let text = document.getElementById('msg').value;
-addDoc(msgRef,{type:"msg",user,text,time:Date.now()});
-document.getElementById('msg').value="";
-}
+        function login() {
+            client.requestAccessToken();
+        }
 
-// Leave event
-window.onbeforeunload = ()=>{
-addDoc(msgRef,{type:"left",user,time:Date.now()});
-}
+        async function showApp() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // यूजर प्रोफाइल लाना
+            const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const user = await resp.json();
+            document.getElementById('uName').innerText = user.name;
+            document.getElementById('uImg').src = user.picture;
+        }
 
-// CALL SYSTEM (basic WebRTC placeholder)
-window.startCall = function(){
-let box = document.getElementById('callBox');
-box.style.display='block';
-box.innerHTML="Call Started (upgrade me full system dunga)";
-}
+        document.getElementById('imgInput').onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                base64Img = reader.result.split(',')[1];
+                document.getElementById('preview').src = reader.result;
+                document.getElementById('preview').classList.remove('hidden');
+                document.getElementById('uploadLabel').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        };
 
-// Disable right click & inspect
-window.addEventListener('contextmenu',e=>e.preventDefault());
-document.onkeydown = function(e){
-if(e.key=="F12") return false;
-}
+        async function process(mode) {
+            if (!base64Img) return alert("फोटो अपलोड करें!");
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
 
-</script></body>
+            try {
+                // यहाँ बिना API Key के, यूजर के Access Token का इस्तेमाल हो रहा है
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompts[mode] },
+                                { inline_data: { mime_type: "image/jpeg", data: base64Img } }
+                            ]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                console.log("Gemini Response:", data);
+                
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('result').classList.remove('hidden');
+                
+                // डाउनलोड सेटअप (वही हाई-स्केल लॉजिक)
+                document.getElementById('dlBtn').onclick = () => {
+                    const canvas = document.createElement('canvas');
+                    const img = document.getElementById('preview');
+                    const scale = (mode === '8k') ? 4 : (mode === '4k') ? 2 : 1.5;
+                    canvas.width = img.naturalWidth * scale;
+                    canvas.height = img.naturalHeight * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const link = document.createElement('a');
+                    link.download = `P2K_${mode}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                };
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
 </html>
