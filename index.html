@@ -3,72 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pintu Photo Downloader</title>
+    <title>Pintu 8K Downloader</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: radial-gradient(circle, #1e293b 0%, #0f172a 100%); }
-    </style>
 </head>
-<body class="text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-5">
 
-    <div class="max-w-md w-full bg-slate-800/50 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/10">
-        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2 text-center">Photo Loader</h1>
-        <p class="text-slate-400 mb-8 text-center text-sm">लिंक पेस्ट करें और जादू देखें</p>
+    <div class="max-w-md w-full bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent mb-6 text-center">Photo Processor</h1>
 
         <input type="text" id="linkInput" 
-            class="w-full p-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-blue-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4"
-            placeholder="https://...">
+            class="w-full p-4 rounded-2xl bg-zinc-800 border border-zinc-700 text-cyan-300 focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+            placeholder="इमेज लिंक यहाँ पेस्ट करें...">
 
-        <button onclick="loadImage()" 
+        <button onclick="processImage()" 
             class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-lg mb-6">
             फोटो लोड करें
         </button>
 
-        <div id="resultArea" class="hidden animate-fade-in">
-            <img id="outputImage" src="" alt="Loaded" class="w-full rounded-2xl border border-slate-700 shadow-md mb-4">
+        <div id="resultArea" class="hidden">
+            <div id="loader" class="text-center py-4 text-blue-400 animate-pulse">प्रोसेसिंग हो रही है...</div>
+            <img id="outputImage" src="" alt="Result" class="w-full rounded-2xl border border-zinc-700 mb-4 hidden">
             
-            <button id="downloadBtn" onclick="forceDownload()" 
-               class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95">
+            <a id="downloadBtn" href="#" download="Pintu_8K_Photo.jpg"
+               class="hidden w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl text-center transition-all shadow-lg">
                HD में डाउनलोड करें
-            </button>
+            </a>
         </div>
     </div>
 
     <script>
-        function loadImage() {
-            const input = document.getElementById('linkInput').value.trim();
+        async function processImage() {
+            const inputUrl = document.getElementById('linkInput').value.trim();
             const img = document.getElementById('outputImage');
-            const result = document.getElementById('resultArea');
+            const resultArea = document.getElementById('resultArea');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const loader = document.getElementById('loader');
 
-            if (!input) return alert("लिंक कहाँ है भाई?");
+            if (!inputUrl) return alert("लिंक पेस्ट करो भाई!");
 
-            // CORS Proxy का इस्तेमाल ताकि 'Not Found' या खाली न आए
-            const proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(input.replace(/^https?:\/\//, ''));
-            
-            img.src = proxyUrl;
+            resultArea.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            img.classList.add('hidden');
+            downloadBtn.classList.add('hidden');
 
-            img.onload = () => {
-                result.classList.remove('hidden');
-            };
+            try {
+                // यह प्रॉक्सी किसी भी इमेज को 'Allow' कर देती है
+                const proxyUrl = "https://images.weserv.nl/?url=" + encodeURIComponent(inputUrl);
+                
+                const response = await fetch(proxyUrl);
+                const blob = await response.blob();
+                const reader = new FileReader();
 
-            img.onerror = () => {
-                alert("यह फोटो लोड नहीं हो रही। कृपया दूसरा लिंक ट्राई करें!");
-            };
-        }
+                reader.onloadend = () => {
+                    const base64data = reader.result;
+                    img.src = base64data;
+                    downloadBtn.href = base64data;
+                    
+                    loader.classList.add('hidden');
+                    img.classList.remove('hidden');
+                    downloadBtn.classList.remove('hidden');
+                };
 
-        async function forceDownload() {
-            const img = document.getElementById('outputImage');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            ctx.drawImage(img, 0, 0);
-            
-            const link = document.createElement('a');
-            link.download = "Pintu_8K_Photo.jpg";
-            link.href = canvas.toDataURL('image/jpeg', 1.0);
-            link.click();
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                alert("लिंक खराब है या लोड नहीं हो रहा।");
+                console.error(error);
+            }
         }
     </script>
 </body>
