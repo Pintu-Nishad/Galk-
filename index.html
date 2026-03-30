@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic-Tac-Toe Online Voice</title>
+    <title>Tic-Tac-Toe Live Match</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -11,33 +11,25 @@
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        
-        .container { background: var(--card); padding: 2rem; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 350px; }
-        
+        .container { background: var(--card); padding: 2rem; border-radius: 1.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 350px; }
         #status { font-size: 0.9rem; margin-bottom: 1rem; color: var(--accent); font-weight: 600; min-height: 20px; }
-        
         .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
         .cell { aspect-ratio: 1; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
-        .cell:hover:not(.taken) { border-color: var(--accent); background: #1e293b; }
+        .cell:hover:not(.taken) { border-color: var(--accent); }
         .cell.taken { cursor: default; }
         .cell[data-val="X"] { color: #f87171; }
         .cell[data-val="O"] { color: #fbbf24; }
-
-        .btn-play { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-        .btn-play:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-
-        /* Voice Panel */
+        .btn-play { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
         .voice-controls { margin-top: 20px; padding: 15px; background: #000; border-radius: 12px; display: none; flex-direction: column; gap: 8px; border: 1px solid #334155; }
-        .mute-btn { background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .mute-btn.on { background: #22c55e; }
-        .mic-indicator { font-size: 0.75rem; color: #10b981; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        #mute-btn { background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .mic-indicator { font-size: 0.75rem; color: #10b981; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2 style="margin-top:0">Tic-Tac-Toe</h2>
-        <div id="status">Initializing...</div>
+        <h2>Tic-Tac-Toe Online</h2>
+        <div id="status">Connecting to Server...</div>
 
         <div class="board" id="board">
             <div class="cell" data-index="0"></div><div class="cell" data-index="1"></div><div class="cell" data-index="2"></div>
@@ -45,18 +37,18 @@
             <div class="cell" data-index="6"></div><div class="cell" data-index="7"></div><div class="cell" data-index="8"></div>
         </div>
 
-        <button class="btn-play" id="match-btn" onclick="findPlayer()">Find Online Opponent</button>
+        <button class="btn-play" id="match-btn" onclick="findPlayer()">Find Online Player</button>
 
         <div class="voice-controls" id="voice-panel">
-            <div class="mic-indicator" id="mic-status">● Live Audio Connected</div>
-            <button class="mute-btn" id="mute-btn" onclick="toggleMic()">Mute Microphone</button>
+            <div class="mic-indicator" id="mic-status">● Live Voice Active</div>
+            <button id="mute-btn" onclick="toggleMic()">Mute Mic</button>
         </div>
     </div>
 
     <audio id="remoteAudio" autoplay></audio>
 
 <script>
-    // Firebase Config (Using your provided details)
+    // Firebase Setup
     const firebaseConfig = {
         apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM",
         authDomain: "galk-55f49.firebaseapp.com",
@@ -69,115 +61,108 @@
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const lobbyRef = db.ref('match_lobby');
+    const lobbyRef = db.ref('matchmaking_lobby');
 
     let peer = new Peer();
-    let myId, conn, localStream;
+    let myId, conn, localStream, isMuted = false;
     let board = Array(9).fill("");
-    let mySymbol = "X";
-    let turn = "X";
-    let isMuted = false;
+    let mySymbol = "X", turn = "X";
 
     peer.on('open', id => { 
         myId = id; 
-        document.getElementById('status').innerText = "Ready to play!";
+        document.getElementById('status').innerText = "Ready!";
     });
 
-    // --- Matchmaking ---
+    // --- Fixed Matchmaking ---
     function findPlayer() {
         const btn = document.getElementById('match-btn');
-        btn.disabled = true;
         btn.innerText = "Searching...";
-        document.getElementById('status').innerText = "Looking for someone online...";
+        btn.disabled = true;
 
         lobbyRef.once('value', snapshot => {
-            const data = snapshot.val();
-            if (data && data.waitingUser && data.waitingUser !== myId) {
-                // Someone is waiting, connect!
-                const targetId = data.waitingUser;
-                lobbyRef.remove(); 
+            const waiter = snapshot.val();
+            if (waiter && waiter.id !== myId) {
+                // Kisi aur ki ID mil gayi, connect karo
+                const opponentId = waiter.id;
+                lobbyRef.remove(); // Lobby se ID hatao taaki koi aur connect na kare
                 mySymbol = "O";
-                connectToPeer(targetId);
+                initConnection(opponentId);
             } else {
-                // Nobody waiting, put me in lobby
-                lobbyRef.set({ waitingUser: myId });
+                // Koi nahi hai, apni ID daal kar wait karo
+                lobbyRef.set({ id: myId });
+                document.getElementById('status').innerText = "Waiting for an opponent...";
+                
+                // Jab koi connect karega, 'connection' event trigger hoga
             }
         });
     }
 
-    function connectToPeer(id) {
+    function initConnection(id) {
         const c = peer.connect(id);
-        setupConnection(c);
+        setupEvents(c);
         startVoice(id);
     }
 
     peer.on('connection', c => {
         mySymbol = "X";
-        setupConnection(c);
+        setupEvents(c);
     });
 
-    function setupConnection(c) {
+    function setupEvents(c) {
         conn = c;
         conn.on('open', () => {
-            document.getElementById('status').innerText = "Match Found! You: " + mySymbol;
+            document.getElementById('status').innerText = "Connected! You are: " + mySymbol;
             document.getElementById('match-btn').style.display = "none";
             document.getElementById('voice-panel').style.display = "flex";
         });
         conn.on('data', data => {
-            if(data.type === 'move') applyMove(data.index, data.symbol);
+            if(data.type === 'move') updateBoard(data.index, data.symbol);
         });
     }
 
-    // --- Voice Logic ---
+    // --- Voice Implementation ---
     async function startVoice(targetId) {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const call = peer.call(targetId, localStream);
-            call.on('stream', stream => document.getElementById('remoteAudio').srcObject = stream);
-        } catch (e) { console.error("Mic Error:", e); }
+            call.on('stream', s => document.getElementById('remoteAudio').srcObject = s);
+        } catch(e) { console.log("Mic error"); }
     }
 
     peer.on('call', async call => {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            call.answer(localStream);
-            call.on('stream', stream => document.getElementById('remoteAudio').srcObject = stream);
-            document.getElementById('voice-panel').style.display = "flex";
-        } catch (e) { console.error("Mic Error:", e); }
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        call.answer(localStream);
+        call.on('stream', s => document.getElementById('remoteAudio').srcObject = s);
+        document.getElementById('voice-panel').style.display = "flex";
     });
 
     function toggleMic() {
-        if (!localStream) return;
+        if(!localStream) return;
         isMuted = !isMuted;
         localStream.getAudioTracks()[0].enabled = !isMuted;
         const btn = document.getElementById('mute-btn');
-        const status = document.getElementById('mic-status');
-        
-        btn.innerText = isMuted ? "Unmute Microphone" : "Mute Microphone";
+        btn.innerText = isMuted ? "Unmute Mic" : "Mute Mic";
         btn.style.background = isMuted ? "#22c55e" : "#ef4444";
-        status.innerText = isMuted ? "○ Microphone Muted" : "● Live Audio Connected";
-        status.style.color = isMuted ? "#94a3b8" : "#10b981";
     }
 
-    // --- Game Engine ---
+    // --- Game Logic ---
     document.querySelectorAll('.cell').forEach(cell => {
         cell.onclick = () => {
             const idx = cell.dataset.index;
             if(board[idx] === "" && turn === mySymbol && conn) {
-                applyMove(idx, mySymbol);
+                updateBoard(idx, mySymbol);
                 conn.send({ type: 'move', index: idx, symbol: mySymbol });
             }
         };
     });
 
-    function applyMove(i, sym) {
+    function updateBoard(i, sym) {
         board[i] = sym;
-        const cell = document.querySelectorAll('.cell')[i];
-        cell.innerText = sym;
-        cell.setAttribute('data-val', sym);
-        cell.classList.add('taken');
+        const c = document.querySelectorAll('.cell')[i];
+        c.innerText = sym;
+        c.setAttribute('data-val', sym);
+        c.classList.add('taken');
         turn = (sym === "X") ? "O" : "X";
-        document.getElementById('status').innerText = (turn === mySymbol) ? "Your Turn!" : "Waiting for opponent...";
         checkWin();
     }
 
@@ -187,7 +172,6 @@
             if (board[p[0]] && board[p[0]] === board[p[1]] && board[p[0]] === board[p[2]]) {
                 alert(board[p[0]] + " Wins!");
                 location.reload();
-                return;
             }
         }
         if (!board.includes("")) { alert("Draw!"); location.reload(); }
